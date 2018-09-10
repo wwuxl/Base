@@ -9,6 +9,6 @@ interface IFDialog {
     /**
      * 网络请求结束时， 关闭正在加载的dialog
      */
-    fun dismissDialog()
+    fun dismissLoadingDialog()
 
 }

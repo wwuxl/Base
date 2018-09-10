@@ -8,9 +8,11 @@ import android.view.View
 import wxl.com.base.activity.NetStatusActivity
 import wxl.com.base.databinding.ActivityMainBinding
 import wxl.com.base.databinding.ViewTitleRightBinding
+import wxl.com.base.model.Response
 import wxl.com.base.model.VersionInfo
 import wxl.com.base.netapi.HttpManager
 import wxl.com.base.rx.RxUtils
+import wxl.com.base.subscriber.OnSubscriberListener
 import wxl.com.base.subscriber.OnUpdataListener
 import wxl.com.base.utils.MyLog
 import wxl.com.base.view.NetStatusLayout
@@ -39,6 +41,7 @@ class MainActivity : NetStatusActivity() {
         initData()
         initRightView()
 
+
     }
 
     private fun initRightView() {
@@ -66,6 +69,12 @@ class MainActivity : NetStatusActivity() {
 
             override fun onNext(t: VersionInfo) {
                 MyLog.e("===","onNext "+t.upContent)
+            }
+
+        }))
+        mDisposable.add(RxUtils.rx(this,HttpManager.getHttpService().getGoodsQrCode(57468,57468),object :OnSubscriberListener<Response<String>>{
+            override fun onNext(t: Response<String>) {
+
             }
 
         }))

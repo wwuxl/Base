@@ -8,12 +8,14 @@ import android.view.View
 import wxl.com.base.R
 import wxl.com.base.databinding.ActivityBaseBinding
 import wxl.com.base.databinding.ViewBaseTitleBinding
+import wxl.com.base.subscriber.IFDialog
+import wxl.com.base.subscriber.LoadingDialog
 
 
-
-abstract class BaseActivity : AppCompatActivity() {
+abstract class BaseActivity : AppCompatActivity() ,IFDialog{
     private lateinit var mBaseBinding: ActivityBaseBinding
     private var titleBinding: ViewBaseTitleBinding?=null
+    private lateinit var loadingDialog:LoadingDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,5 +44,21 @@ abstract class BaseActivity : AppCompatActivity() {
         //做空判断
         titleBinding?.titleRight?.addView(view)
 
+    }
+
+    /**
+     * 显示正在加载网络的dialog
+     */
+    override fun showLoadingDialog() {
+        loadingDialog=LoadingDialog(this)
+        loadingDialog.show()
+
+    }
+
+    /**
+     * 关闭正在加载网络的dialog
+     */
+    override fun dismissLoadingDialog() {
+        loadingDialog?.dismiss()
     }
 }
