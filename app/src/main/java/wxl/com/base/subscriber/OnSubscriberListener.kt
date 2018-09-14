@@ -30,4 +30,11 @@ interface OnSubscriberListener<T> {
 
     }
 
+    /**
+     * 请求结束回调
+     */
+    fun onEnd(){
+
+    }
+
 }

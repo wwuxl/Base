@@ -9,13 +9,15 @@ import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.View
 import wxl.com.base.R
+import wxl.com.base.utils.MyLog
 
 /**
  * @date Created time 2018/9/10 17:35
  * @author wuxiulin
  * @description 实现RecyclerView列表的封装
  */
-class RecyclerViewDelegate<T> {
+class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
+
     private lateinit var mRecyclerView: RecyclerView
     private lateinit var mAdapter: RecyclerViewAdapter<T>
     /**
@@ -30,7 +32,7 @@ class RecyclerViewDelegate<T> {
 
     private var mIAdapter: RIAdapter<T>
     private var mIReloadData: IReloadData
-    private var mSwipeRefreshLayout: SwipeRefreshLayout?=null
+    private var mSwipeRefreshLayout: SwipeRefreshLayout? = null
     private var isPullUpRefresh: Boolean = true
     private var isPullDownRefresh: Boolean = true
     private var mDatas: ArrayList<T>
@@ -52,6 +54,24 @@ class RecyclerViewDelegate<T> {
         this.isPullUpRefresh = builder.isPullUpRefresh
         builder.mSwipeRefreshLayout?.let { this.mSwipeRefreshLayout = it }
         mDatas = ArrayList()
+
+
+    }
+
+    override fun onStart() {
+
+    }
+
+    override fun onLoadMore() {
+        mAdapter.showLoadMoreView(true)
+        mIReloadData.reLoadData()
+
+    }
+
+    override fun onFinish() {
+        setLoadingMore(false)
+        mAdapter.showLoadMoreView(false)
+
     }
 
     fun getNextPage(): Int = mCurrentPage++
@@ -67,11 +87,91 @@ class RecyclerViewDelegate<T> {
         datas?.let { this.mDatas.addAll(it) }
         mAdapter.setDatas(this.mDatas)
         //隐藏下拉转圈
-        mSwipeRefreshLayout?.isRefreshing=false
+        mSwipeRefreshLayout?.isRefreshing = false
 
+        mAdapter.notifyDataSetChanged()
     }
 
     fun getDatas(): ArrayList<T> = mDatas
+
+    fun notifyDataSetChanged() {
+        mAdapter.notifyDataSetChanged()
+
+    }
+
+    fun notifyItemChanged(position: Int) {
+        if (mHeaderView != null)
+            mAdapter.notifyItemChanged(position + 1)
+        else
+            mAdapter.notifyItemChanged(position)
+    }
+
+    fun notifyItemChanged(data: T) {
+        mDatas.forEachIndexed { index, t ->
+            if (data == t) {
+                if (mHeaderView != null)
+                    mAdapter.notifyItemChanged(index + 1)
+                else
+                    mAdapter.notifyItemChanged(index)
+                return
+            }
+        }
+    }
+
+    fun notifyItemRemoved(position: Int) {
+        if (mHeaderView != null)
+            mAdapter.notifyItemRemoved(position + 1)
+        else
+            mAdapter.notifyItemRemoved(position)
+    }
+
+    fun notifyItemRangeRemoved(positionStart: Int, itemCOunt: Int) {
+        if (mHeaderView != null)
+            mAdapter.notifyItemRangeRemoved(positionStart + 1, itemCOunt)
+        else
+            mAdapter.notifyItemRangeRemoved(positionStart, itemCOunt)
+
+    }
+
+    fun notifyItemInserted(position: Int) {
+        if (mHeaderView != null)
+            mAdapter.notifyItemInserted(position + 1)
+        else
+            mAdapter.notifyItemInserted(position)
+    }
+
+    fun notifyItemInserted(data: T) {
+        mDatas.forEachIndexed { index, t ->
+            if (data == t) {
+                if (mHeaderView != null)
+                    mAdapter.notifyItemInserted(index + 1)
+                else
+                    mAdapter.notifyItemInserted(index)
+                return
+            }
+        }
+    }
+
+    fun notifyItemRangeInserted(positionStart: Int, itemCOunt: Int) {
+        if (mHeaderView != null)
+            mAdapter.notifyItemRangeInserted(positionStart + 1, itemCOunt)
+        else
+            mAdapter.notifyItemRangeInserted(positionStart, itemCOunt)
+    }
+
+    fun notifyItemChanged(position: Int, data: T?) {
+        if (mHeaderView != null)
+            mAdapter.notifyItemChanged(position + 1, data)
+        else
+            mAdapter.notifyItemChanged(position, data)
+    }
+
+    fun notifyItemRangeChanged(position: Int, itemCOunt: Int, data: T?) {
+        if (mHeaderView != null)
+            mAdapter.notifyItemRangeChanged(position + 1,itemCOunt, data)
+        else
+            mAdapter.notifyItemRangeChanged(position,itemCOunt, data)
+    }
 
 
     class Builder<T> {
@@ -96,29 +196,29 @@ class RecyclerViewDelegate<T> {
         var mSpanCount: Int = 0
         var orientation: Int = LinearLayoutManager.VERTICAL
         //true 是瀑布流布局
-        var isStaggered=false
+        var isStaggered = false
 
-        constructor(iAdapter: RIAdapter<T>, iReloadData: IReloadData) {
+        constructor(context: Context,iAdapter: RIAdapter<T>, iReloadData: IReloadData){
+            this.context = context
             this.mIAdapter = iAdapter
             this.mIReloadData = iReloadData
-
         }
 
-        fun with(context: Context, iAdapter: RIAdapter<T>, iReloadData: IReloadData): Builder<T> {
-            this.context = context
-            return Builder(iAdapter, iReloadData)
-        }
+//        fun with(context: Context, iAdapter: RIAdapter<T>, iReloadData: IReloadData): Builder<T> {
+//
+//
+//            return Builder(iAdapter,iReloadData)
+//        }
 
-        fun recyclerView(swipeRefreshLayout: SwipeRefreshLayout? = null, recyclerView: RecyclerView, spanCount: Int = 0, orientation: Int = LinearLayoutManager.VERTICAL,isStaggered:Boolean=false): Builder<T> {
+        fun recyclerView(swipeRefreshLayout: SwipeRefreshLayout? = null, recyclerView: RecyclerView, spanCount: Int = 0, orientation: Int = LinearLayoutManager.VERTICAL, isStaggered: Boolean = false): Builder<T> {
             this.mSwipeRefreshLayout = swipeRefreshLayout!!
             this.mRecyclerView = recyclerView
             this.mSpanCount = spanCount
-            this.orientation=orientation
-            this.isStaggered=isStaggered
+            this.orientation = orientation
+            this.isStaggered = isStaggered
             initlayoutManager()
             return this
         }
-
 
         fun addHeaderView(headerView: View?) {
             this.mHeaderView = headerView
@@ -138,7 +238,13 @@ class RecyclerViewDelegate<T> {
             return this
         }
 
+        fun finish() {
+
+
+        }
+
         fun build(): RecyclerViewDelegate<T> {
+            MyLog.e("===", "build()  $mIAdapter")
             mAdapter = RecyclerViewAdapter(mIAdapter)
             //添加头部和底部的布局
             mHeaderView?.let { mAdapter.setHeaderView(it) }
@@ -147,17 +253,27 @@ class RecyclerViewDelegate<T> {
             mSwipeRefreshLayout?.let { initSwipeRefreshLayout() }
             mSwipeRefreshLayout?.let { initLoadMoreView() }
 
-            return RecyclerViewDelegate(this)
+            var recyclerViewDelegate = RecyclerViewDelegate(this)
+            initRecyclerView(recyclerViewDelegate)
+            //第一次加载数据
+            mIReloadData.reLoadData()
+
+            return recyclerViewDelegate
+        }
+
+        //设置RecyclerView滚动监听
+        private fun initRecyclerView(recyclerViewDelegate: RecyclerViewDelegate<T>) {
+            mRecyclerView.addOnScrollListener(recyclerViewDelegate)
         }
 
         private fun initlayoutManager() {
             if (mSpanCount == 0 || mSpanCount == 1) {
-                mRecyclerView.layoutManager = LinearLayoutManager(context,orientation,false)
-            }else{
-                if(isStaggered){
-                    mRecyclerView.layoutManager = StaggeredGridLayoutManager(mSpanCount,orientation)
-                }else{
-                    mRecyclerView.layoutManager = GridLayoutManager(context,mSpanCount,orientation,false)
+                mRecyclerView.layoutManager = LinearLayoutManager(context, orientation, false)
+            } else {
+                if (isStaggered) {
+                    mRecyclerView.layoutManager = StaggeredGridLayoutManager(mSpanCount, orientation)
+                } else {
+                    mRecyclerView.layoutManager = GridLayoutManager(context, mSpanCount, orientation, false)
                 }
             }
 
@@ -206,23 +322,6 @@ class RecyclerViewDelegate<T> {
                     }
 
                 }
-
-
-            }
-                if (mRecyclerView.layoutManager is StaggeredGridLayoutManager) {
-                    //设置网格布局底部加载更多的View 宽带占用mSpanCount列
-//                    (mRecyclerView.layoutManager as StaggeredGridLayoutManager).spanSizeLookup = object : SpanSizeLookup() {
-//
-//                        override fun getSpanSize(p0: Int): Int {
-//                            when (mAdapter.getItemViewType(p0)) {
-//                                RecyclerViewAdapter.LOADMORE_VIEW_TYPE -> return 1
-//                            }
-//                            return mSpanCount
-//                        }
-//                    }
-
-//                }
-
 
             }
 

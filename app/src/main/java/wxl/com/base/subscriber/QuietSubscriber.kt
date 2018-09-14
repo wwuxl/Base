@@ -5,7 +5,7 @@ import wxl.com.base.utils.MyLog
 /**
  * @date Created time 2018/9/7 17:09
  * @author wuxiulin
- * @description 统一
+ * @description 统一网络请求
  */
 open class QuietSubscriber<T>(var listener: OnSubscriberListener<T>?):ResourceSubscriber<T>() {
 
@@ -16,7 +16,7 @@ open class QuietSubscriber<T>(var listener: OnSubscriberListener<T>?):ResourceSu
 
     override fun onComplete() {
         listener?.onComplete()
-
+        listener?.onEnd()
     }
 
     override fun onNext(t: T) {
@@ -30,6 +30,7 @@ open class QuietSubscriber<T>(var listener: OnSubscriberListener<T>?):ResourceSu
     override fun onError(t: Throwable?) {
         MyLog.e("===", "onError "+t?.message!!)
         listener?.onError(t)
+        listener?.onEnd()
     }
 
 }

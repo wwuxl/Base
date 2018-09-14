@@ -1,6 +1,7 @@
 package wxl.com.base
 
 import android.databinding.DataBindingUtil
+import android.databinding.ViewDataBinding
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,13 +12,35 @@ import wxl.com.base.databinding.ViewTitleRightBinding
 import wxl.com.base.model.Response
 import wxl.com.base.model.VersionInfo
 import wxl.com.base.netapi.HttpManager
+import wxl.com.base.recycler.IReloadData
+import wxl.com.base.recycler.RIAdapter
+import wxl.com.base.recycler.RecyclerViewDelegate
 import wxl.com.base.rx.RxUtils
 import wxl.com.base.subscriber.OnSubscriberListener
 import wxl.com.base.subscriber.OnUpdataListener
 import wxl.com.base.utils.MyLog
 import wxl.com.base.view.NetStatusLayout
 
-class MainActivity : NetStatusActivity() {
+class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
+
+    var recyclerViewDelegate:RecyclerViewDelegate<String>?=null
+    override fun onCreateView(): ViewDataBinding {
+        return DataBindingUtil.inflate(LayoutInflater.from(this),R.layout.item_main,null,false)
+    }
+
+    override fun onBindView(data: String, binding: ViewDataBinding, position: Int) {
+
+    }
+
+    override fun reLoadData() {
+        MyLog.e("===","reLoadData")
+        var datas= arrayListOf<String>()
+        for(i in 0..10){
+            datas.add("小明$i")
+        }
+        recyclerViewDelegate!!.setDatas(datas)
+
+    }
 
 
     private lateinit var mBinding: ActivityMainBinding
@@ -38,8 +61,18 @@ class MainActivity : NetStatusActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        initView()
         initData()
         initRightView()
+
+
+    }
+
+    private fun initView() {
+        recyclerViewDelegate=RecyclerViewDelegate.Builder(this,this,this)
+                .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView)
+                .build()
+
 
 
     }

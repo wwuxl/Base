@@ -2,8 +2,10 @@ package wxl.com.base.recycler
 
 import android.databinding.ViewDataBinding
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.View
 import android.view.ViewGroup
+
 
 class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private var datas: ArrayList<T>
@@ -20,22 +22,66 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     constructor(adapter: RIAdapter<T>) : super() {
         this.adapterImpl = adapter
-        datas= ArrayList()
+        datas = ArrayList()
 
     }
-    fun setDatas(datas: ArrayList<T>){
+
+    fun setDatas(datas: ArrayList<T>) {
         this.datas = datas
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(p0: ViewGroup, p1: Int): RecyclerView.ViewHolder = RViewHolder(adapterImpl.onCreateView())
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        //判断是否是瀑布流布局
+        if (isStaggeredGridLayout(holder)) {
+            handleLayoutIfStaggeredGridLayout(holder, holder.getLayoutPosition());
+        }
+    }
+
+    private fun isStaggeredGridLayout(holder: RecyclerView.ViewHolder): Boolean {
+        val layoutParams = holder.itemView.layoutParams
+        return layoutParams != null && layoutParams is StaggeredGridLayoutManager.LayoutParams
+    }
+
+    protected fun handleLayoutIfStaggeredGridLayout(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder.itemViewType) {
+            LOADMORE_VIEW_TYPE -> {
+                val params = holder.itemView.layoutParams as StaggeredGridLayoutManager.LayoutParams
+                params.isFullSpan = true
+            }
+        }
+    }
+
+    override fun onCreateViewHolder(p0: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            HEADER_VIEW_TYPE -> RViewHolder(headerView!!)
+
+            FOOTER_VIEW_TYPE -> RViewHolder(footerView!!)
+
+            LOADMORE_VIEW_TYPE -> RViewHolder(loadMoreView!!)
+
+            else -> RViewHolder(adapterImpl.onCreateView())
+        }
+    }
 
     override fun getItemCount(): Int = datas.size + getHeaderViewCount() + getFooterViewCount() + getFooterViewCount()
 
-    override fun onBindViewHolder(p0: RecyclerView.ViewHolder, p1: Int) {
+    override fun onBindViewHolder(p0: RecyclerView.ViewHolder, position: Int) {
         var viewHolder = p0 as RecyclerViewAdapter<*>.RViewHolder
         //回调给调用者
-        adapterImpl.onBindView(datas[p1], viewHolder.binding, p1)
+        when (getItemViewType(position)) {
+            HEADER_VIEW_TYPE -> {
+            }
+            FOOTER_VIEW_TYPE -> {
+            }
+            LOADMORE_VIEW_TYPE -> {
+            }
+            else -> {
+                adapterImpl.onBindView(datas[position - getHeaderViewCount()], viewHolder.binding!!, position - getHeaderViewCount())
+            }
+        }
+
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -66,6 +112,16 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     }
 
+    fun showLoadMoreView(isShow: Boolean) {
+        if (loadMoreView != null) {
+            if (!isShow) {
+                notifyItemRemoved(itemCount)
+            } else {
+                notifyItemInserted(itemCount)
+            }
+        }
+    }
+
     /**
      * 设置上拉加载更多的布局
      */
@@ -86,12 +142,15 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
 
+
     inner class RViewHolder : RecyclerView.ViewHolder {
-        var binding: ViewDataBinding
+        var binding: ViewDataBinding? = null
 
         constructor(itemBinding: ViewDataBinding) : super(itemBinding.root) {
             binding = itemBinding
         }
+
+        constructor(itemView: View) : super(itemView)
 
     }
 
