@@ -6,8 +6,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import wxl.com.base.activity.NetStatusActivity
 import wxl.com.base.databinding.ActivityMainBinding
+import wxl.com.base.databinding.ItemMainBinding
 import wxl.com.base.databinding.ViewTitleRightBinding
 import wxl.com.base.model.Response
 import wxl.com.base.model.VersionInfo
@@ -24,21 +26,28 @@ import wxl.com.base.view.NetStatusLayout
 class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
 
     var recyclerViewDelegate:RecyclerViewDelegate<String>?=null
-    override fun onCreateView(): ViewDataBinding {
-        return DataBindingUtil.inflate(LayoutInflater.from(this),R.layout.item_main,null,false)
+    override fun onCreateView(parent: ViewGroup, viewType: Int): ViewDataBinding {
+        return DataBindingUtil.inflate(LayoutInflater.from(this),R.layout.item_main,parent,false)
     }
 
     override fun onBindView(data: String, binding: ViewDataBinding, position: Int) {
+        var itemBinding = binding as ItemMainBinding
+        itemBinding.name.text=data
+        itemBinding.root.setOnClickListener {
+            recyclerViewDelegate?.notifyItemRemoved(position)
+        }
 
     }
 
     override fun reLoadData() {
+        //Thread.sleep(1000)
         MyLog.e("===","reLoadData")
         var datas= arrayListOf<String>()
         for(i in 0..10){
             datas.add("小明$i")
         }
-        recyclerViewDelegate!!.setDatas(datas)
+        recyclerViewDelegate?.setDatas(datas)
+        setDataStatus(NetStatusLayout.NetStatus.STATUS_SUCCEED)
 
     }
 
@@ -73,6 +82,8 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
                 .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView)
                 .build()
 
+        recyclerViewDelegate?.reloadData()
+
 
 
     }
@@ -83,7 +94,7 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
     }
 
     private fun initData() {
-        setDataStatus(NetStatusLayout.NetStatus.STATUS_ERROR)
+
 
 
     }

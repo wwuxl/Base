@@ -8,6 +8,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.View
+import android.widget.LinearLayout
 import wxl.com.base.R
 import wxl.com.base.utils.MyLog
 
@@ -63,7 +64,8 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     }
 
     override fun onLoadMore() {
-        mAdapter.showLoadMoreView(true)
+        MyLog.e("===", "onLoadMore ")
+         mAdapter.showLoadMoreView(true)
         mIReloadData.reLoadData()
 
     }
@@ -74,13 +76,18 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     }
 
+    fun reloadData() {
+        //第一次加载数据
+        mIReloadData.reLoadData()
+    }
+
     fun getNextPage(): Int = mCurrentPage++
 
     fun getPageSize(): Int = mPageSize
 
 
     fun setDatas(datas: ArrayList<T>?) {
-        if (mCurrentPage == 1) {
+        if (mCurrentPage == 1 || mCurrentPage == 0) {
             this.mDatas.clear()
         }
         //不是null 就添加
@@ -90,9 +97,11 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         mSwipeRefreshLayout?.isRefreshing = false
 
         mAdapter.notifyDataSetChanged()
+
+        onFinish()
     }
 
-    fun getDatas(): ArrayList<T> = mDatas
+    fun getDatas(): ArrayList<T> = mAdapter.getDatas()
 
     fun notifyDataSetChanged() {
         mAdapter.notifyDataSetChanged()
@@ -119,10 +128,25 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     }
 
     fun notifyItemRemoved(position: Int) {
-        if (mHeaderView != null)
-            mAdapter.notifyItemRemoved(position + 1)
-        else
-            mAdapter.notifyItemRemoved(position)
+        var tempPosition: Int = position
+        if (mHeaderView != null) {
+            tempPosition += 1
+        }
+
+        var t1: T? = null
+        for ((index, value) in mDatas.withIndex()) {
+            if (index == tempPosition) {
+                t1 = value
+                break
+            }
+        }
+        mDatas = mAdapter.getDatas()
+        t1?.let { mDatas.remove(t1) }
+
+        mAdapter.notifyItemRemoved(tempPosition)
+        //刷新后面的itemV 数据
+        mAdapter.notifyItemRangeChanged(tempPosition, mDatas.size - tempPosition)
+
     }
 
     fun notifyItemRangeRemoved(positionStart: Int, itemCOunt: Int) {
@@ -133,23 +157,23 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     }
 
-    fun notifyItemInserted(position: Int) {
+    fun notifyItemInserted(position: Int,data: T) {
+        var tempPosition: Int = position
         if (mHeaderView != null)
-            mAdapter.notifyItemInserted(position + 1)
-        else
-            mAdapter.notifyItemInserted(position)
+            tempPosition += 1
+
+        mDatas = mAdapter.getDatas()
+        //添加到集合再刷新
+        mDatas.add(position,data)
+        mAdapter.notifyItemInserted(tempPosition)
+        mAdapter.notifyItemRangeChanged(tempPosition,mDatas.size-tempPosition)
     }
 
     fun notifyItemInserted(data: T) {
-        mDatas.forEachIndexed { index, t ->
-            if (data == t) {
-                if (mHeaderView != null)
-                    mAdapter.notifyItemInserted(index + 1)
-                else
-                    mAdapter.notifyItemInserted(index)
-                return
-            }
-        }
+        //添加到集合再刷新
+        mDatas = mAdapter.getDatas()
+        mDatas.add(data)
+        mAdapter.notifyItemChanged(mDatas.size-1)
     }
 
     fun notifyItemRangeInserted(positionStart: Int, itemCOunt: Int) {
@@ -168,13 +192,13 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     fun notifyItemRangeChanged(position: Int, itemCOunt: Int, data: T?) {
         if (mHeaderView != null)
-            mAdapter.notifyItemRangeChanged(position + 1,itemCOunt, data)
+            mAdapter.notifyItemRangeChanged(position + 1, itemCOunt, data)
         else
-            mAdapter.notifyItemRangeChanged(position,itemCOunt, data)
+            mAdapter.notifyItemRangeChanged(position, itemCOunt, data)
     }
 
 
-    class Builder<T> {
+    class Builder<T>(context: Context, iAdapter: RIAdapter<T>, iReloadData: IReloadData) {
         lateinit var mRecyclerView: RecyclerView
         lateinit var mAdapter: RecyclerViewAdapter<T>
         /**
@@ -187,28 +211,17 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         var mFooterView: View? = null
 
 
-        var mIAdapter: RIAdapter<T>
-        var mIReloadData: IReloadData
+        var mIAdapter: RIAdapter<T> = iAdapter
+        var mIReloadData: IReloadData = iReloadData
         var mSwipeRefreshLayout: SwipeRefreshLayout? = null
         var isPullUpRefresh: Boolean = true
         var isPullDownRefresh: Boolean = true
-        var context: Context? = null
+        var context: Context? = context
         var mSpanCount: Int = 0
         var orientation: Int = LinearLayoutManager.VERTICAL
         //true 是瀑布流布局
         var isStaggered = false
 
-        constructor(context: Context,iAdapter: RIAdapter<T>, iReloadData: IReloadData){
-            this.context = context
-            this.mIAdapter = iAdapter
-            this.mIReloadData = iReloadData
-        }
-
-//        fun with(context: Context, iAdapter: RIAdapter<T>, iReloadData: IReloadData): Builder<T> {
-//
-//
-//            return Builder(iAdapter,iReloadData)
-//        }
 
         fun recyclerView(swipeRefreshLayout: SwipeRefreshLayout? = null, recyclerView: RecyclerView, spanCount: Int = 0, orientation: Int = LinearLayoutManager.VERTICAL, isStaggered: Boolean = false): Builder<T> {
             this.mSwipeRefreshLayout = swipeRefreshLayout!!
@@ -238,13 +251,8 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             return this
         }
 
-        fun finish() {
-
-
-        }
 
         fun build(): RecyclerViewDelegate<T> {
-            MyLog.e("===", "build()  $mIAdapter")
             mAdapter = RecyclerViewAdapter(mIAdapter)
             //添加头部和底部的布局
             mHeaderView?.let { mAdapter.setHeaderView(it) }
@@ -255,8 +263,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
             var recyclerViewDelegate = RecyclerViewDelegate(this)
             initRecyclerView(recyclerViewDelegate)
-            //第一次加载数据
-            mIReloadData.reLoadData()
 
             return recyclerViewDelegate
         }
@@ -264,6 +270,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         //设置RecyclerView滚动监听
         private fun initRecyclerView(recyclerViewDelegate: RecyclerViewDelegate<T>) {
             mRecyclerView.addOnScrollListener(recyclerViewDelegate)
+            mRecyclerView.adapter = mAdapter
         }
 
         private fun initlayoutManager() {
@@ -294,6 +301,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
                 mSwipeRefreshLayout?.setOnRefreshListener {
                     //下拉刷新请求回到第一页数据
                     mCurrentPage = 0
+                    MyLog.e("===", "RefreshListener  $mCurrentPage")
                     //回调重新加载数据的方法
                     mIReloadData.reLoadData()
 
@@ -308,6 +316,8 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             //上拉加载更多
             if (isPullUpRefresh) {
                 var loadMoreView = LoadMoreView(context!!)
+                var params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                loadMoreView.layoutParams = params
                 mAdapter.setLoadMoreView(loadMoreView)
                 if (mRecyclerView.layoutManager is GridLayoutManager) {
                     //设置网格布局底部加载更多的View 宽带占用mSpanCount列

@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.View
 import android.view.ViewGroup
+import wxl.com.base.utils.MyLog
 
 
 class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -31,11 +32,13 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
         notifyDataSetChanged()
     }
 
+    fun getDatas(): ArrayList<T> = this.datas
+
     override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
         super.onViewAttachedToWindow(holder)
         //判断是否是瀑布流布局
         if (isStaggeredGridLayout(holder)) {
-            handleLayoutIfStaggeredGridLayout(holder, holder.getLayoutPosition());
+            handleLayoutIfStaggeredGridLayout(holder, holder.layoutPosition)
         }
     }
 
@@ -53,22 +56,24 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
     }
 
-    override fun onCreateViewHolder(p0: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            HEADER_VIEW_TYPE -> RViewHolder(headerView!!)
+            HEADER_VIEW_TYPE -> HFLViewHolder(headerView!!)
 
-            FOOTER_VIEW_TYPE -> RViewHolder(footerView!!)
+            FOOTER_VIEW_TYPE -> HFLViewHolder(footerView!!)
 
-            LOADMORE_VIEW_TYPE -> RViewHolder(loadMoreView!!)
+            LOADMORE_VIEW_TYPE -> HFLViewHolder(loadMoreView!!)
 
-            else -> RViewHolder(adapterImpl.onCreateView())
+            else -> RViewHolder(adapterImpl.onCreateView(parent, viewType))
         }
     }
 
-    override fun getItemCount(): Int = datas.size + getHeaderViewCount() + getFooterViewCount() + getFooterViewCount()
+    override fun getItemCount(): Int {
+        return datas.size + getHeaderViewCount() + getFooterViewCount() + getLoadMoreViewCount()
+    }
 
     override fun onBindViewHolder(p0: RecyclerView.ViewHolder, position: Int) {
-        var viewHolder = p0 as RecyclerViewAdapter<*>.RViewHolder
+
         //回调给调用者
         when (getItemViewType(position)) {
             HEADER_VIEW_TYPE -> {
@@ -76,8 +81,10 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
             FOOTER_VIEW_TYPE -> {
             }
             LOADMORE_VIEW_TYPE -> {
+
             }
             else -> {
+                var viewHolder = p0 as RecyclerViewAdapter<*>.RViewHolder
                 adapterImpl.onBindView(datas[position - getHeaderViewCount()], viewHolder.binding!!, position - getHeaderViewCount())
             }
         }
@@ -88,7 +95,7 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if (headerView != null && position == 0) {
             return HEADER_VIEW_TYPE
         }
-        if (footerView != null && itemCount - getLoadMoreView() - 1 == position) {
+        if (footerView != null && itemCount - getLoadMoreViewCount() - 1 == position) {
             return FOOTER_VIEW_TYPE
         }
         if (loadMoreView != null && itemCount - 1 == position) {
@@ -113,13 +120,42 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     fun showLoadMoreView(isShow: Boolean) {
-        if (loadMoreView != null) {
-            if (!isShow) {
-                notifyItemRemoved(itemCount)
-            } else {
-                notifyItemInserted(itemCount)
-            }
+        loadMoreView?.let {
+            MyLog.e("===","isShow = $isShow")
+            MyLog.e("===","1=== ${it.width}  ${it.height} ==="+datas.size)
+            it?.visibility=View.GONE
+
+
+            Thread.sleep(3000)
+            it?.visibility=View.VISIBLE
+            MyLog.e("===","2=== ${it.width}  ${it.height}")
+
         }
+
+
+    }
+
+    /**
+     * 隐藏和显示ItemView
+     *
+     * @param isVisible
+     * @param view
+     */
+    private fun setVisibility(isVisible: Boolean, view: View) {
+        val param = view.layoutParams
+        //MyLog.e("===","isVisible = $isVisible")
+        if (isVisible) {
+            param.height = 100
+            param.width = 500
+            view.visibility = View.VISIBLE
+            MyLog.e("===","isVisible = $isVisible   width= ${param.width}   height= ${param.height}" )
+        } else {
+            view.visibility = View.GONE
+            param.height = 0
+            param.width = 0
+            MyLog.e("===","isVisible = $isVisible   width= ${param.width}   height= ${param.height}" )
+        }
+        view.layoutParams = param
     }
 
     /**
@@ -137,10 +173,9 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return if (footerView == null) 0 else 1
     }
 
-    private fun getLoadMoreView(): Int {
+    private fun getLoadMoreViewCount(): Int {
         return if (loadMoreView == null) 0 else 1
     }
-
 
 
     inner class RViewHolder : RecyclerView.ViewHolder {
@@ -150,8 +185,11 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
             binding = itemBinding
         }
 
-        constructor(itemView: View) : super(itemView)
 
+    }
+
+    inner class HFLViewHolder : RecyclerView.ViewHolder {
+        constructor(itemView: View) : super(itemView)
     }
 
 }
