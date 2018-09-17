@@ -65,7 +65,31 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     override fun onLoadMore() {
         MyLog.e("===", "onLoadMore ")
-         mAdapter.showLoadMoreView(true)
+        mAdapter.showLoadMoreView(true)
+        var layoutManager=mRecyclerView.layoutManager
+        when(layoutManager){
+            is GridLayoutManager->{
+                var position:Int= mDatas.size
+                if(mHeaderView!=null){
+                    position+=1
+                }
+                var manager=layoutManager
+                manager.scrollToPositionWithOffset(position,0)
+                manager.reverseLayout=false
+            }
+            is LinearLayoutManager->{
+                var position:Int= mDatas.size
+                if(mHeaderView!=null){
+                    position+=1
+                }
+                var manager=layoutManager
+                manager.scrollToPositionWithOffset(position,0)
+                manager.stackFromEnd=true
+            }
+            else->{
+
+            }
+        }
         mIReloadData.reLoadData()
 
     }

@@ -39,7 +39,7 @@ class NetStatusLayout @JvmOverloads constructor(context: Context, attrs: Attribu
 
     private fun initEvent() {
         errorViewBinding.btnReload.setOnClickListener {
-            if (listener != null) listener!!.reloadData()
+            if (listener != null) listener!!.errorReloadData()
         }
 
     }
@@ -83,7 +83,7 @@ class NetStatusLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     }
 
     interface StatusListener {
-        fun reloadData()
+        fun errorReloadData()
     }
 
     enum class NetStatus {

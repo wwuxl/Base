@@ -1,8 +1,11 @@
 package wxl.com.base
 
+import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.databinding.ViewDataBinding
 import android.os.Bundle
+import android.os.Handler
+import android.os.Message
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -34,22 +37,25 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
         var itemBinding = binding as ItemMainBinding
         itemBinding.name.text=data
         itemBinding.root.setOnClickListener {
-            recyclerViewDelegate?.notifyItemRemoved(position)
+            //recyclerViewDelegate?.notifyItemRemoved(position)
+            startActivity(Intent(this@MainActivity,GridActivity::class.java))
+
         }
 
     }
 
     override fun reLoadData() {
-        //Thread.sleep(1000)
-        MyLog.e("===","reLoadData")
-        var datas= arrayListOf<String>()
-        for(i in 0..10){
-            datas.add("小明$i")
-        }
-        recyclerViewDelegate?.setDatas(datas)
-        setDataStatus(NetStatusLayout.NetStatus.STATUS_SUCCEED)
+        Thread(object :Runnable{
+            override fun run() {
+                MyLog.e("===","发送消息")
+                handler.sendMessageDelayed(Message.obtain(),2000)
+            }
+
+        }).start()
+
 
     }
+
 
 
     private lateinit var mBinding: ActivityMainBinding
@@ -79,7 +85,7 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
 
     private fun initView() {
         recyclerViewDelegate=RecyclerViewDelegate.Builder(this,this,this)
-                .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView)
+                .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView,2)
                 .build()
 
         recyclerViewDelegate?.reloadData()
@@ -99,7 +105,7 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
 
     }
 
-    override fun reloadData() {
+    override fun errorReloadData() {
         Log.e("===", "重新加载")
         //mDisposable.add(RxUtils.rx(HttpManager.getHttpService().getGoodsQrCode(57468, 57468)))
         mDisposable.add(RxUtils.rxUpdata(HttpManager.getUpdaService().getVersionInfo("seller_version.json"),object :OnUpdataListener<VersionInfo>{
@@ -123,6 +129,21 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
 
         }))
 
+    }
+    private var handler= MyHandler()
+
+    inner class MyHandler :Handler(){
+        override fun handleMessage(msg: Message?) {
+            super.handleMessage(msg)
+
+            MyLog.e("===","收到消息")
+            var datas= arrayListOf<String>()
+            for(i in 0..10){
+                datas.add("小明$i")
+            }
+            recyclerViewDelegate?.setDatas(datas)
+            setDataStatus(NetStatusLayout.NetStatus.STATUS_SUCCEED)
+        }
     }
 
 }

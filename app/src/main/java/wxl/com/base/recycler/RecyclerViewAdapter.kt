@@ -6,6 +6,7 @@ import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.View
 import android.view.ViewGroup
 import wxl.com.base.utils.MyLog
+import wxl.com.base.utils.UIUtil
 
 
 class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -121,14 +122,11 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     fun showLoadMoreView(isShow: Boolean) {
         loadMoreView?.let {
-            MyLog.e("===","isShow = $isShow")
-            MyLog.e("===","1=== ${it.width}  ${it.height} ==="+datas.size)
-            it?.visibility=View.GONE
-
-
-            Thread.sleep(3000)
-            it?.visibility=View.VISIBLE
-            MyLog.e("===","2=== ${it.width}  ${it.height}")
+            MyLog.e("===", "isShow = $isShow")
+            // MyLog.e("===","1=== ${it.width}  ${it.height} ==="+datas.size)
+            // if(isShow) it?.visibility=View.VISIBLE else it?.visibility=View.GONE
+            setVisibility(isShow, it)
+            // MyLog.e("===","2=== ${it.width}  ${it.height}")
 
         }
 
@@ -142,18 +140,18 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * @param view
      */
     private fun setVisibility(isVisible: Boolean, view: View) {
-        val param = view.layoutParams
+        var param = view.layoutParams
         //MyLog.e("===","isVisible = $isVisible")
         if (isVisible) {
-            param.height = 100
-            param.width = 500
+            param.height = UIUtil.dip2px(50)
+            param.width = UIUtil.getScreenWidth()
             view.visibility = View.VISIBLE
-            MyLog.e("===","isVisible = $isVisible   width= ${param.width}   height= ${param.height}" )
+            MyLog.e("===", "isVisible = $isVisible   width= ${param.width}   height= ${param.height}")
         } else {
             view.visibility = View.GONE
-            param.height = 0
+            param.height = 1
             param.width = 0
-            MyLog.e("===","isVisible = $isVisible   width= ${param.width}   height= ${param.height}" )
+            MyLog.e("===", "isVisible = $isVisible   width= ${param.width}   height= ${param.height}")
         }
         view.layoutParams = param
     }
@@ -189,7 +187,13 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     inner class HFLViewHolder : RecyclerView.ViewHolder {
-        constructor(itemView: View) : super(itemView)
+        constructor(itemView: View) : super(itemView) {
+            when (itemView) {
+                loadMoreView -> {
+                setVisibility(false,loadMoreView!!)
+                }
+            }
+        }
     }
 
 }
