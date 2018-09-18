@@ -5,7 +5,6 @@ import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.View
 import android.view.ViewGroup
-import wxl.com.base.utils.MyLog
 import wxl.com.base.utils.UIUtil
 
 
@@ -17,9 +16,9 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private var loadMoreView: View? = null
 
     companion object {
-        private var HEADER_VIEW_TYPE = 100 shl 2
+        var HEADER_VIEW_TYPE = 100 shl 2
         var LOADMORE_VIEW_TYPE = 101 shl 2
-        private var FOOTER_VIEW_TYPE = 102 shl 2
+        var FOOTER_VIEW_TYPE = 102 shl 2
     }
 
     constructor(adapter: RIAdapter<T>) : super() {
@@ -39,7 +38,7 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
         super.onViewAttachedToWindow(holder)
         //判断是否是瀑布流布局
         if (isStaggeredGridLayout(holder)) {
-            handleLayoutIfStaggeredGridLayout(holder, holder.layoutPosition)
+            handleLayoutIfStaggeredGridLayout(holder)
         }
     }
 
@@ -48,9 +47,18 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return layoutParams != null && layoutParams is StaggeredGridLayoutManager.LayoutParams
     }
 
-    protected fun handleLayoutIfStaggeredGridLayout(holder: RecyclerView.ViewHolder, position: Int) {
+    private fun handleLayoutIfStaggeredGridLayout(holder: RecyclerView.ViewHolder) {
+        //瀑布流布局 headerView 和 footerView 和 loadMoreView 宽度填满屏幕
         when (holder.itemViewType) {
             LOADMORE_VIEW_TYPE -> {
+                val params = holder.itemView.layoutParams as StaggeredGridLayoutManager.LayoutParams
+                params.isFullSpan = true
+            }
+            HEADER_VIEW_TYPE -> {
+                val params = holder.itemView.layoutParams as StaggeredGridLayoutManager.LayoutParams
+                params.isFullSpan = true
+            }
+            FOOTER_VIEW_TYPE -> {
                 val params = holder.itemView.layoutParams as StaggeredGridLayoutManager.LayoutParams
                 params.isFullSpan = true
             }
@@ -85,7 +93,7 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             }
             else -> {
-                var viewHolder = p0 as RecyclerViewAdapter<*>.RViewHolder
+                val viewHolder = p0 as RecyclerViewAdapter<*>.RViewHolder
                 adapterImpl.onBindView(datas[position - getHeaderViewCount()], viewHolder.binding!!, position - getHeaderViewCount())
             }
         }
@@ -122,12 +130,8 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     fun showLoadMoreView(isShow: Boolean) {
         loadMoreView?.let {
-            MyLog.e("===", "isShow = $isShow")
-            // MyLog.e("===","1=== ${it.width}  ${it.height} ==="+datas.size)
-            // if(isShow) it?.visibility=View.VISIBLE else it?.visibility=View.GONE
+            //重绘loadMoreView的大小
             setVisibility(isShow, it)
-            // MyLog.e("===","2=== ${it.width}  ${it.height}")
-
         }
 
 
@@ -141,17 +145,14 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
      */
     private fun setVisibility(isVisible: Boolean, view: View) {
         var param = view.layoutParams
-        //MyLog.e("===","isVisible = $isVisible")
         if (isVisible) {
             param.height = UIUtil.dip2px(50)
             param.width = UIUtil.getScreenWidth()
             view.visibility = View.VISIBLE
-            MyLog.e("===", "isVisible = $isVisible   width= ${param.width}   height= ${param.height}")
         } else {
             view.visibility = View.GONE
-            param.height = 1
+            param.height = 0
             param.width = 0
-            MyLog.e("===", "isVisible = $isVisible   width= ${param.width}   height= ${param.height}")
         }
         view.layoutParams = param
     }

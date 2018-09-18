@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import io.reactivex.functions.Consumer
 import wxl.com.base.activity.NetStatusActivity
 import wxl.com.base.databinding.ActivityMainBinding
 import wxl.com.base.databinding.ItemMainBinding
@@ -20,7 +21,8 @@ import wxl.com.base.netapi.HttpManager
 import wxl.com.base.recycler.IReloadData
 import wxl.com.base.recycler.RIAdapter
 import wxl.com.base.recycler.RecyclerViewDelegate
-import wxl.com.base.rx.RxUtils
+import wxl.com.base.rx.RxBus
+import wxl.com.base.rx.RxHttpUtils
 import wxl.com.base.subscriber.OnSubscriberListener
 import wxl.com.base.subscriber.OnUpdataListener
 import wxl.com.base.utils.MyLog
@@ -39,7 +41,7 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
         itemBinding.root.setOnClickListener {
             //recyclerViewDelegate?.notifyItemRemoved(position)
             startActivity(Intent(this@MainActivity,GridActivity::class.java))
-
+            finish()
         }
 
     }
@@ -85,7 +87,7 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
 
     private fun initView() {
         recyclerViewDelegate=RecyclerViewDelegate.Builder(this,this,this)
-                .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView,2)
+                .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView)
                 .build()
 
         recyclerViewDelegate?.reloadData()
@@ -102,13 +104,24 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
     private fun initData() {
 
 
+        mDisposable.add(RxBus.register(String::class.java, Consumer<String> {
+            MyLog.e("===","收到消息1  $it")
+        }))
+
+        RxBus.register(String::class.java, Consumer<String> {
+            MyLog.e("===","收到消息2  $it")
+        })
+
+        RxBus.register(String::class.java, Consumer<String> {
+            MyLog.e("===","收到消息3  $it")
+        })
 
     }
 
     override fun errorReloadData() {
         Log.e("===", "重新加载")
         //mDisposable.add(RxUtils.rx(HttpManager.getHttpService().getGoodsQrCode(57468, 57468)))
-        mDisposable.add(RxUtils.rxUpdata(HttpManager.getUpdaService().getVersionInfo("seller_version.json"),object :OnUpdataListener<VersionInfo>{
+        mDisposable.add(RxHttpUtils.rxUpdata(HttpManager.getUpdaService().getVersionInfo("seller_version.json"),object :OnUpdataListener<VersionInfo>{
             override fun onError(t: Throwable?) {
                 MyLog.e("===","onError "+t.toString())
             }
@@ -122,7 +135,7 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
             }
 
         }))
-        mDisposable.add(RxUtils.rx(this,HttpManager.getHttpService().getGoodsQrCode(57468,57468),object :OnSubscriberListener<Response<String>>{
+        mDisposable.add(RxHttpUtils.rx(this,HttpManager.getHttpService().getGoodsQrCode(57468,57468),object :OnSubscriberListener<Response<String>>{
             override fun onNext(t: Response<String>) {
 
             }

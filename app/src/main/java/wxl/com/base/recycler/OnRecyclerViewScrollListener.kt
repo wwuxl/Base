@@ -38,7 +38,7 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
         var totalItemCount = recyclerView.layoutManager?.itemCount
         if (childCount != null&&totalItemCount!=null) {
             //停止滚动 SCROLL_STATE_IDLE
-            if(childCount > 0&&newState==RecyclerView.SCROLL_STATE_IDLE&&lastVisibleItemPosition >= totalItemCount - 1){
+            if(childCount > 0&&newState==RecyclerView.SCROLL_STATE_IDLE&&lastVisibleItemPosition >= totalItemCount - 2){
                 if(!isLoadingMore()){
                     this.mIsLoadingMore =true
                     onStart()

@@ -5,20 +5,19 @@ import android.databinding.ViewDataBinding
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
-import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.RecyclerView.Adapter
+import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import kotlinx.android.synthetic.main.item_grid.view.*
 import wxl.com.base.activity.NetStatusActivity
 import wxl.com.base.databinding.ActivityGridBinding
 import wxl.com.base.databinding.ItemGridBinding
+import wxl.com.base.databinding.ViewFooterBinding
+import wxl.com.base.databinding.ViewHeaderBinding
 import wxl.com.base.recycler.IReloadData
 import wxl.com.base.recycler.RIAdapter
 import wxl.com.base.recycler.RecyclerViewDelegate
+import wxl.com.base.rx.RxBus
 import wxl.com.base.utils.MyLog
 import wxl.com.base.view.NetStatusLayout
 
@@ -73,48 +72,33 @@ class GridActivity : NetStatusActivity(), IReloadData, RIAdapter<String> {
     private fun initData() {
         datas= arrayListOf()
         for (i in 0..20){
-            datas?.add("小红$i")
+            if(i%2==0){
+                datas?.add("根据国家二级哥几个我够为各国看i佛我配几个武功鄂温克健儿搞明白")
+            }else{
+                datas?.add("小红$i")
+            }
         }
 
 
     }
 
     private fun initView() {
-//        recyclerViewDelegate=RecyclerViewDelegate.Builder(this,this,this)
-//                .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView,2)
-//                .build()
-//
-//        recyclerViewDelegate?.reloadData()
+        var headerBinding=DataBindingUtil.inflate<ViewHeaderBinding>(LayoutInflater.from(this),R.layout.view_header,null,false)
+        var footerBinding=DataBindingUtil.inflate<ViewFooterBinding>(LayoutInflater.from(this),R.layout.view_footer,null,false)
 
-        mBinding.recyclerView.layoutManager=GridLayoutManager(this,2)
-        mBinding.recyclerView.adapter= object :Adapter<RecyclerView.ViewHolder>(){
-            override fun onCreateViewHolder(p0: ViewGroup, p1: Int): RecyclerView.ViewHolder {
-                var itemBinding:ItemGridBinding=DataBindingUtil.inflate(LayoutInflater.from(this@GridActivity), R.layout.item_grid, p0, false)
+        recyclerViewDelegate=RecyclerViewDelegate.Builder(this,this,this)
+                .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView,3,StaggeredGridLayoutManager.VERTICAL,true)
+                .addHeaderView(headerBinding.root)
+                .addFooterView(footerBinding.root)
+                .onPullRefresh(true,false)
+                .build()
 
-                return MyViewHolder(itemBinding.root )
-            }
-
-            override fun getItemCount(): Int {
-                return datas!!.size
-            }
-
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, p1: Int) {
-                var itemHolder =holder as MyViewHolder
-                itemHolder.name.text=datas?.get(p1)
-
-            }
-
-        }
+        recyclerViewDelegate?.reloadData()
 
 
 
-    }
 
-    inner class MyViewHolder: RecyclerView.ViewHolder {
-        var name:TextView
-        constructor(itemView: View):super(itemView){
-            name=itemView.name
-        }
+
     }
 
 
@@ -125,9 +109,14 @@ class GridActivity : NetStatusActivity(), IReloadData, RIAdapter<String> {
             super.handleMessage(msg)
 
             MyLog.e("===","收到消息")
+            RxBus.post("发送 nihao2")
             var datas= arrayListOf<String>()
-            for(i in 0..10){
-                datas.add("小明$i")
+            for(i in 0..30){
+                if(i%2==0){
+                    datas?.add("根据国家二级哥几个我够为各国看i佛我配几个武功鄂温克健儿搞明白")
+                }else{
+                    datas?.add("小明$i")
+                }
             }
             recyclerViewDelegate?.setDatas(datas)
             setDataStatus(NetStatusLayout.NetStatus.STATUS_SUCCEED)

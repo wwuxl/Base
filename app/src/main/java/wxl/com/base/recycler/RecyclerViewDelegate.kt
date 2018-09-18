@@ -3,7 +3,6 @@ package wxl.com.base.recycler
 import android.content.Context
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.GridLayoutManager
-import android.support.v7.widget.GridLayoutManager.SpanSizeLookup
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
@@ -11,6 +10,7 @@ import android.view.View
 import android.widget.LinearLayout
 import wxl.com.base.R
 import wxl.com.base.utils.MyLog
+
 
 /**
  * @date Created time 2018/9/10 17:35
@@ -64,9 +64,9 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     }
 
     override fun onLoadMore() {
-        MyLog.e("===", "onLoadMore ")
         mAdapter.showLoadMoreView(true)
         var layoutManager=mRecyclerView.layoutManager
+        //上拉加载更多时 显示加载更多布局
         when(layoutManager){
             is GridLayoutManager->{
                 var position:Int= mDatas.size
@@ -86,8 +86,13 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
                 manager.scrollToPositionWithOffset(position,0)
                 manager.stackFromEnd=true
             }
-            else->{
-
+            is StaggeredGridLayoutManager->{
+                var position:Int= mDatas.size
+                if(mHeaderView!=null){
+                    position+=1
+                }
+                var manager=layoutManager
+                manager.scrollToPositionWithOffset(position,0)
             }
         }
         mIReloadData.reLoadData()
@@ -98,6 +103,15 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         setLoadingMore(false)
         mAdapter.showLoadMoreView(false)
 
+    }
+    private fun findMax(lastPositions: IntArray): Int {
+        var max = lastPositions[0]
+        for (value in lastPositions) {
+            if (value > max) {
+                max = value
+            }
+        }
+        return max
     }
 
     fun reloadData() {
@@ -234,16 +248,35 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
          */
         var mFooterView: View? = null
 
-
+        /**
+         * 适配器回调
+         */
         var mIAdapter: RIAdapter<T> = iAdapter
+        /**
+         * 加载数据回调
+         */
         var mIReloadData: IReloadData = iReloadData
         var mSwipeRefreshLayout: SwipeRefreshLayout? = null
+        /**
+         * 上拉加载更多
+         */
         var isPullUpRefresh: Boolean = true
+        /**
+         * 下拉刷新
+         */
         var isPullDownRefresh: Boolean = true
         var context: Context? = context
+        /**
+         * 列数
+         */
         var mSpanCount: Int = 0
+        /**
+         * 排列方式： 垂直或水平
+         */
         var orientation: Int = LinearLayoutManager.VERTICAL
-        //true 是瀑布流布局
+        /**
+         * true 是瀑布流布局  false 反之
+         */
         var isStaggered = false
 
 
@@ -257,25 +290,29 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             return this
         }
 
-        fun addHeaderView(headerView: View?) {
+        fun addHeaderView(headerView: View?):Builder<T> {
             this.mHeaderView = headerView
-
+            return this
 
         }
 
-        fun addFooterView(footerView: View?) {
+        fun addFooterView(footerView: View?):Builder<T> {
             this.mFooterView = footerView
-
+            return this
         }
 
-
-        fun onPullRefresh(isPullDownRefresh: Boolean, isPullUpRefresh: Boolean): Builder<T> {
+        /**
+         * 设置是否可以 上拉加载更多和下拉刷新
+         */
+        fun onPullRefresh(isPullDownRefresh: Boolean=true, isPullUpRefresh: Boolean=true): Builder<T> {
             this.isPullDownRefresh = isPullDownRefresh
             this.isPullUpRefresh = isPullUpRefresh
             return this
         }
 
-
+        /**
+         * 创建RecyclerViewDelegate对象
+         */
         fun build(): RecyclerViewDelegate<T> {
             mAdapter = RecyclerViewAdapter(mIAdapter)
             //添加头部和底部的布局
@@ -286,15 +323,17 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             mSwipeRefreshLayout?.let { initLoadMoreView() }
 
             var recyclerViewDelegate = RecyclerViewDelegate(this)
-            initRecyclerView(recyclerViewDelegate)
-
+            if(isPullUpRefresh){
+                initRecyclerView(recyclerViewDelegate)
+            }
+            mRecyclerView.adapter = mAdapter
             return recyclerViewDelegate
         }
 
         //设置RecyclerView滚动监听
         private fun initRecyclerView(recyclerViewDelegate: RecyclerViewDelegate<T>) {
             mRecyclerView.addOnScrollListener(recyclerViewDelegate)
-            mRecyclerView.adapter = mAdapter
+
         }
 
         private fun initlayoutManager() {
@@ -310,7 +349,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
 
         }
-
         private fun initSwipeRefreshLayout() {
             //设置下拉圆圈的大小，两个值 LARGE， DEFAULT
             mSwipeRefreshLayout?.setSize(SwipeRefreshLayout.DEFAULT)
@@ -345,13 +383,15 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
                 mAdapter.setLoadMoreView(loadMoreView)
                 if (mRecyclerView.layoutManager is GridLayoutManager) {
                     //设置网格布局底部加载更多的View 宽带占用mSpanCount列
-                    (mRecyclerView.layoutManager as GridLayoutManager).spanSizeLookup = object : SpanSizeLookup() {
+                    (mRecyclerView.layoutManager as GridLayoutManager).spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
 
                         override fun getSpanSize(p0: Int): Int {
                             when (mAdapter.getItemViewType(p0)) {
-                                RecyclerViewAdapter.LOADMORE_VIEW_TYPE -> return 1
+                                RecyclerViewAdapter.LOADMORE_VIEW_TYPE -> return mSpanCount
+                                RecyclerViewAdapter.HEADER_VIEW_TYPE -> return mSpanCount
+                                RecyclerViewAdapter.FOOTER_VIEW_TYPE -> return mSpanCount
                             }
-                            return mSpanCount
+                            return 1
                         }
                     }
 

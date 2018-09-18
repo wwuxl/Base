@@ -32,6 +32,8 @@ class NetStatusLayout @JvmOverloads constructor(context: Context, attrs: Attribu
         errorViewBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.error_view, this, false)
         addView(emptyViewBinding.root)
         addView(errorViewBinding.root)
+        emptyViewBinding.root.visibility= View.GONE
+        errorViewBinding.root.visibility= View.GONE
 
         initEvent()
 
@@ -47,6 +49,8 @@ class NetStatusLayout @JvmOverloads constructor(context: Context, attrs: Attribu
     fun setContentView(contentView: View?) {
        if (contentView == null) this.contentView = View(context) else this.contentView = contentView
         addView(this.contentView)
+        this.contentView.visibility= View.GONE
+
     }
 
 
