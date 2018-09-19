@@ -15,12 +15,12 @@
             android:id="@+id/emptyImg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@mipmap/coming_soon"/>
+            android:src="@mipmap/empty_icon"/>
         <TextView
             android:id="@+id/emptyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:textSize="16sp"
             android:text="当前数据为空"/>
 

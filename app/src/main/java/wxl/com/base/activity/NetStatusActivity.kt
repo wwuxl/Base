@@ -4,14 +4,14 @@ import android.databinding.DataBindingUtil
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import io.reactivex.disposables.CompositeDisposable
 import wxl.com.base.R
 import wxl.com.base.databinding.ActivityNetStatusBinding
+import wxl.com.base.subscriber.NetStatusListener
 import wxl.com.base.view.NetStatusLayout
 
-abstract class NetStatusActivity : BaseActivity(), NetStatusLayout.StatusListener {
+abstract class NetStatusActivity : BaseActivity(), NetStatusLayout.StatusListener,NetStatusListener {
     private lateinit var mStatusBinding: ActivityNetStatusBinding
-    var mDisposable = CompositeDisposable()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,11 +29,23 @@ abstract class NetStatusActivity : BaseActivity(), NetStatusLayout.StatusListene
         mStatusBinding = DataBindingUtil.inflate(LayoutInflater.from(this), R.layout.activity_net_status, null, false)
         return mStatusBinding.root
     }
+    override fun onLoading() {
+        mStatusBinding.statusLayout.showStatus(NetStatusLayout.NetStatus.STATUS_LOADING)
+    }
+
+    override fun onEmpty() {
+        mStatusBinding.statusLayout.showStatus(NetStatusLayout.NetStatus.STATUS_EMPTY)
+    }
+
+    override fun onError() {
+        mStatusBinding.statusLayout.showStatus(NetStatusLayout.NetStatus.STATUS_ERROR)
+    }
+
+    override fun onSucceed() {
+        mStatusBinding.statusLayout.showStatus(NetStatusLayout.NetStatus.STATUS_SUCCEED)
+    }
+
 
     abstract fun initSucceedContentView():View?
 
-    override fun onDestroy() {
-        super.onDestroy()
-        mDisposable.clear()
-    }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
+import io.reactivex.disposables.CompositeDisposable
 import wxl.com.base.R
 import wxl.com.base.databinding.ActivityBaseBinding
 import wxl.com.base.databinding.ViewBaseTitleBinding
@@ -16,6 +17,7 @@ abstract class BaseActivity : AppCompatActivity() ,IFDialog{
     private lateinit var mBaseBinding: ActivityBaseBinding
     private var titleBinding: ViewBaseTitleBinding?=null
     private lateinit var loadingDialog:LoadingDialog
+    var mDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,5 +62,11 @@ abstract class BaseActivity : AppCompatActivity() ,IFDialog{
      */
     override fun dismissLoadingDialog() {
         loadingDialog?.dismiss()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        dismissLoadingDialog()
+        mDisposable.clear()
     }
 }
