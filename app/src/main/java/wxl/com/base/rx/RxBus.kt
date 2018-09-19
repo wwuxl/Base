@@ -8,7 +8,11 @@ import io.reactivex.processors.PublishProcessor
 import io.reactivex.schedulers.Schedulers
 import wxl.com.base.utils.MyLog
 
-
+/**
+ * @date Created time 2018/9/19 14:25
+ * @author wuxiulin
+ * @description 事件总线工具类
+ */
 object RxBus {
 
     private var mBus: FlowableProcessor<Any>? = null

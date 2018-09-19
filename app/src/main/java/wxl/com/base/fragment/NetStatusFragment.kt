@@ -25,6 +25,11 @@ abstract class NetStatusFragment:BaseFragment(), NetStatusLayout.StatusListener,
         return mBinding.root
     }
 
+    fun setDataStatus(status: NetStatusLayout.NetStatus) {
+        mBinding.statusLayout.showStatus(status)
+
+    }
+
     override fun onLoading() {
         mBinding.statusLayout.showStatus(NetStatusLayout.NetStatus.STATUS_LOADING)
     }

@@ -5,7 +5,8 @@ package wxl.com.base.subscriber
  * @author wuxiulin
  * @description 带正在加载网络弹窗的订阅者
  */
-class ProgressSubscriber<T>(var dialogImp: IFDialog?, listener: OnSubscriberListener<T>?): QuietSubscriber<T>(listener) {
+class ProgressSubscriber<T>(var dialogImp: IFDialog?, listener: OnSubscriberListener<T>?,statusListener: NetStatusListener?)
+    : QuietSubscriber<T>(listener,statusListener) {
 
     override fun onStart() {
         super.onStart()
@@ -13,12 +14,13 @@ class ProgressSubscriber<T>(var dialogImp: IFDialog?, listener: OnSubscriberList
 
     }
 
-    override fun onError(t: Throwable?) {
+    override fun onError(t: Throwable) {
         super.onError(t)
         dialogImp?.dismissLoadingDialog()
     }
 
     override fun onComplete() {
+        super.onComplete()
         dialogImp?.dismissLoadingDialog()
     }
 
