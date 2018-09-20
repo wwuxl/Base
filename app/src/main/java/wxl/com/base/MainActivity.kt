@@ -3,6 +3,7 @@ package wxl.com.base
 import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.databinding.ViewDataBinding
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
@@ -19,6 +20,7 @@ import wxl.com.base.model.Response
 import wxl.com.base.model.VersionInfo
 import wxl.com.base.netapi.HttpManager
 import wxl.com.base.recycler.IReloadData
+import wxl.com.base.recycler.LineItemDecoration
 import wxl.com.base.recycler.RIAdapter
 import wxl.com.base.recycler.RecyclerViewDelegate
 import wxl.com.base.rx.RxBus
@@ -86,8 +88,10 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
     }
 
     private fun initView() {
+
         recyclerViewDelegate=RecyclerViewDelegate.Builder(this,this,this)
                 .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView)
+                .addItemDecoration(LineItemDecoration(Color.RED,100,20,20))
                 .build()
 
         recyclerViewDelegate?.reloadData()

@@ -12,6 +12,8 @@ import wxl.com.base.R
 import wxl.com.base.utils.MyLog
 
 
+
+
 /**
  * @date Created time 2018/9/10 17:35
  * @author wuxiulin
@@ -58,6 +60,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
 
     }
+
 
     override fun onStart() {
 
@@ -123,6 +126,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     fun getPageSize(): Int = mPageSize
 
+    fun isPullUpRefresh()=isPullUpRefresh
 
     fun setDatas(datas: ArrayList<T>?) {
         if (mCurrentPage == 1 || mCurrentPage == 0) {
@@ -236,6 +240,8 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     }
 
 
+
+
     class Builder<T>(context: Context, iAdapter: RIAdapter<T>, iReloadData: IReloadData) {
         lateinit var mRecyclerView: RecyclerView
         lateinit var mAdapter: RecyclerViewAdapter<T>
@@ -307,6 +313,11 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         fun onPullRefresh(isPullDownRefresh: Boolean=true, isPullUpRefresh: Boolean=true): Builder<T> {
             this.isPullDownRefresh = isPullDownRefresh
             this.isPullUpRefresh = isPullUpRefresh
+            return this
+        }
+
+        fun addItemDecoration(divider: RecyclerView.ItemDecoration): Builder<T> {
+            mRecyclerView.addItemDecoration(divider)
             return this
         }
 

@@ -16,7 +16,7 @@ import wxl.com.base.subscriber.LoadingDialog
 abstract class BaseActivity : AppCompatActivity() ,IFDialog{
     private lateinit var mBaseBinding: ActivityBaseBinding
     private var titleBinding: ViewBaseTitleBinding?=null
-    private lateinit var loadingDialog:LoadingDialog
+    private var loadingDialog:LoadingDialog?=null
     var mDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +53,7 @@ abstract class BaseActivity : AppCompatActivity() ,IFDialog{
      */
     override fun showLoadingDialog() {
         loadingDialog=LoadingDialog(this)
-        loadingDialog.show()
+        loadingDialog?.show()
 
     }
 

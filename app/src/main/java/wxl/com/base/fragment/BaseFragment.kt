@@ -10,13 +10,13 @@ import wxl.com.base.subscriber.LoadingDialog
  * @description Fragment基类
  */
 open class BaseFragment : Fragment(), IFDialog {
-    private lateinit var loadingDialog: LoadingDialog
+    private var loadingDialog: LoadingDialog?=null
     var mDisposable = CompositeDisposable()
 
 
     override fun showLoadingDialog() {
         loadingDialog = LoadingDialog(activity!!)
-        loadingDialog.show()
+        loadingDialog?.show()
     }
 
     override fun dismissLoadingDialog() {
