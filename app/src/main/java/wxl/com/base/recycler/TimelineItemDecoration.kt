@@ -2,7 +2,6 @@ package wxl.com.base.recycler
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.support.v7.widget.RecyclerView
@@ -10,7 +9,7 @@ import android.view.View
 import wxl.com.base.R
 
 
-class TimelineItemDecoration(context: Context) : RecyclerView.ItemDecoration() {
+class TimelineItemDecoration(context: Context,color:Int) : RecyclerView.ItemDecoration() {
     private var mPaint:Paint
     //ItemView左边的间距
     private var mOffsetLeft:Float
@@ -22,7 +21,7 @@ class TimelineItemDecoration(context: Context) : RecyclerView.ItemDecoration() {
     init {
         mPaint = Paint()
         mPaint.isAntiAlias=true
-        mPaint.color=Color.RED
+        mPaint.color=color
         mOffsetLeft = context.resources.getDimension(R.dimen.timeline_item_offset_left)
         mNodeRadius = context.resources.getDimension(R.dimen.timeline_item_node_radius)
     }

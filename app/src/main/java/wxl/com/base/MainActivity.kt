@@ -1,9 +1,7 @@
 package wxl.com.base
 
-import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.databinding.ViewDataBinding
-import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
@@ -15,12 +13,12 @@ import io.reactivex.functions.Consumer
 import wxl.com.base.activity.NetStatusActivity
 import wxl.com.base.databinding.ActivityMainBinding
 import wxl.com.base.databinding.ItemMainBinding
+import wxl.com.base.databinding.ViewHeader1Binding
 import wxl.com.base.databinding.ViewTitleRightBinding
 import wxl.com.base.model.Response
 import wxl.com.base.model.VersionInfo
 import wxl.com.base.netapi.HttpManager
 import wxl.com.base.recycler.IReloadData
-import wxl.com.base.recycler.LineItemDecoration
 import wxl.com.base.recycler.RIAdapter
 import wxl.com.base.recycler.RecyclerViewDelegate
 import wxl.com.base.rx.RxBus
@@ -28,6 +26,7 @@ import wxl.com.base.rx.RxHttpUtils
 import wxl.com.base.subscriber.OnSubscriberListener
 import wxl.com.base.subscriber.OnUpdataListener
 import wxl.com.base.utils.MyLog
+import wxl.com.base.utils.ToastUtil
 import wxl.com.base.view.NetStatusLayout
 
 class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
@@ -41,9 +40,10 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
         var itemBinding = binding as ItemMainBinding
         itemBinding.name.text=data
         itemBinding.root.setOnClickListener {
-            //recyclerViewDelegate?.notifyItemRemoved(position)
-            startActivity(Intent(this@MainActivity,GridActivity::class.java))
-            finish()
+           recyclerViewDelegate?.notifyItemRemoved(position)
+            ToastUtil.show(this@MainActivity,"$position")
+            //startActivity(Intent(this@MainActivity,GridActivity::class.java))
+
         }
 
     }
@@ -88,10 +88,12 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
     }
 
     private fun initView() {
-
+        var headerBinding=DataBindingUtil.inflate<ViewHeader1Binding>(LayoutInflater.from(this),R.layout.view_header1,mBinding.swipeRefreshLayout,false)
         recyclerViewDelegate=RecyclerViewDelegate.Builder(this,this,this)
                 .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView)
-                .addItemDecoration(LineItemDecoration(Color.RED,100,20,20))
+                //.addItemDecoration(LineItemDecoration(Color.RED,50,20,20))
+                .addHeaderView(headerBinding.root)
+                .setOnPullRefresh(true,true)
                 .build()
 
         recyclerViewDelegate?.reloadData()

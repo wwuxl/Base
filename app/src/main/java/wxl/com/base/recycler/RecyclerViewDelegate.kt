@@ -171,10 +171,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     fun notifyItemRemoved(position: Int) {
         var tempPosition: Int = position
-        if (mHeaderView != null) {
-            tempPosition += 1
-        }
-
         var t1: T? = null
         for ((index, value) in mDatas.withIndex()) {
             if (index == tempPosition) {
@@ -185,9 +181,12 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         mDatas = mAdapter.getDatas()
         t1?.let { mDatas.remove(t1) }
 
+        if (mHeaderView != null) {
+            tempPosition += 1
+        }
         mAdapter.notifyItemRemoved(tempPosition)
         //刷新后面的itemV 数据
-        mAdapter.notifyItemRangeChanged(tempPosition, mDatas.size - tempPosition)
+        mAdapter.notifyItemRangeChanged(tempPosition, mDatas.size - position)
 
     }
 
@@ -310,7 +309,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         /**
          * 设置是否可以 上拉加载更多和下拉刷新
          */
-        fun onPullRefresh(isPullDownRefresh: Boolean=true, isPullUpRefresh: Boolean=true): Builder<T> {
+        fun setOnPullRefresh(isPullDownRefresh: Boolean=true, isPullUpRefresh: Boolean=true): Builder<T> {
             this.isPullDownRefresh = isPullDownRefresh
             this.isPullUpRefresh = isPullUpRefresh
             return this

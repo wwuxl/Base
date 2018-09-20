@@ -21,7 +21,7 @@ class LineItemDecoration(lineColor: Int, var lineWidthDp: Int, var leftDisDp: In
         super.onDraw(c, parent, state)
         var childCount = parent.childCount
 
-        for (i in 0 until childCount) {
+        for (i in 1 until childCount) {
             val view = parent.getChildAt(i)
 
             val index = parent.getChildAdapterPosition(view)
