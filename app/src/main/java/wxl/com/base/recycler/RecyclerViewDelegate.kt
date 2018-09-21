@@ -39,6 +39,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     private var isPullUpRefresh: Boolean = true
     private var isPullDownRefresh: Boolean = true
     private var mDatas: ArrayList<T>
+    private var isNotMore:Boolean=true
 
 
     companion object {
@@ -67,7 +68,9 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     }
 
     override fun onLoadMore() {
-        mAdapter.showLoadMoreView(true)
+        MyLog.e("===","onLoadMore")
+      // mAdapter.showLoadMoreView(true)
+        //setLoadingMore(false)
         var layoutManager=mRecyclerView.layoutManager
         //上拉加载更多时 显示加载更多布局
         when(layoutManager){
@@ -87,7 +90,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
                 }
                 var manager=layoutManager
                 manager.scrollToPositionWithOffset(position,0)
-                manager.stackFromEnd=true
+               // manager.stackFromEnd=true//
             }
             is StaggeredGridLayoutManager->{
                 var position:Int= mDatas.size
@@ -98,8 +101,20 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
                 manager.scrollToPositionWithOffset(position,0)
             }
         }
-        mIReloadData.reLoadData()
 
+        if(isNotMore){
+            //限制上拉加载
+            mAdapter.getLoadMoreView().setLoadingMoreStatus(LoadMoreView.LoadStatus.NOT_MORE)
+        }else{
+            if(mDatas.size% mPageSize==0){
+                //可以上拉加载更多
+                mAdapter.getLoadMoreView().setLoadingMoreStatus(LoadMoreView.LoadStatus.HAS_MORE)
+                mIReloadData.reLoadData()
+            }else{
+                //请下拉刷新界面
+                mAdapter.getLoadMoreView().setLoadingMoreStatus(LoadMoreView.LoadStatus.PULL_DOWN)
+            }
+        }
     }
 
     override fun onFinish() {
@@ -107,19 +122,13 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         mAdapter.showLoadMoreView(false)
 
     }
-    private fun findMax(lastPositions: IntArray): Int {
-        var max = lastPositions[0]
-        for (value in lastPositions) {
-            if (value > max) {
-                max = value
-            }
-        }
-        return max
-    }
+
+
 
     fun reloadData() {
         //第一次加载数据
         mIReloadData.reLoadData()
+        //mSwipeRefreshLayout?.isRefreshing=true
     }
 
     fun getNextPage(): Int = mCurrentPage++
@@ -129,8 +138,12 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     fun isPullUpRefresh()=isPullUpRefresh
 
     fun setDatas(datas: ArrayList<T>?) {
+        isNotMore=false
         if (mCurrentPage == 1 || mCurrentPage == 0) {
             this.mDatas.clear()
+            if(datas!=null&&datas.size< mPageSize) {
+                isNotMore=true
+            }
         }
         //不是null 就添加
         datas?.let { this.mDatas.addAll(it) }
@@ -329,13 +342,14 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             mHeaderView?.let { mAdapter.setHeaderView(it) }
             mFooterView?.let { mAdapter.setFooterView(it) }
 
-            mSwipeRefreshLayout?.let { initSwipeRefreshLayout() }
-            mSwipeRefreshLayout?.let { initLoadMoreView() }
 
             var recyclerViewDelegate = RecyclerViewDelegate(this)
             if(isPullUpRefresh){
                 initRecyclerView(recyclerViewDelegate)
             }
+            mSwipeRefreshLayout?.let { initSwipeRefreshLayout(recyclerViewDelegate) }
+            mSwipeRefreshLayout?.let { initLoadMoreView() }
+
             mRecyclerView.adapter = mAdapter
             return recyclerViewDelegate
         }
@@ -359,7 +373,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
 
         }
-        private fun initSwipeRefreshLayout() {
+        private fun initSwipeRefreshLayout(recyclerViewDelegate: RecyclerViewDelegate<T>) {
             //设置下拉圆圈的大小，两个值 LARGE， DEFAULT
             mSwipeRefreshLayout?.setSize(SwipeRefreshLayout.DEFAULT)
             // 设置下拉圆圈上的颜色，红色、绿色、蓝色、黄色
@@ -371,9 +385,11 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             //可以下来
             if (isPullDownRefresh) {
                 mSwipeRefreshLayout?.setOnRefreshListener {
+                    MyLog.e("===","setOnRefreshListener")
                     //下拉刷新请求回到第一页数据
                     mCurrentPage = 0
-                    MyLog.e("===", "RefreshListener  $mCurrentPage")
+                    //不可上拉加载更多
+                    recyclerViewDelegate.setLoadingMore(true)
                     //回调重新加载数据的方法
                     mIReloadData.reLoadData()
 

@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.View
 import android.view.ViewGroup
+import wxl.com.base.utils.MyLog
 import wxl.com.base.utils.UIUtil
 
 
@@ -14,6 +15,7 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private var headerView: View? = null
     private var footerView: View? = null
     private var loadMoreView: View? = null
+
 
     companion object {
         var HEADER_VIEW_TYPE = 100 shl 2
@@ -128,10 +130,14 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     }
 
+    fun getLoadMoreView(): LoadMoreView = loadMoreView as LoadMoreView
+
+
     fun showLoadMoreView(isShow: Boolean) {
         loadMoreView?.let {
             //重绘loadMoreView的大小
             setVisibility(isShow, it)
+
         }
 
 
@@ -139,7 +145,6 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     /**
      * 隐藏和显示ItemView
-     *
      * @param isVisible
      * @param view
      */
@@ -155,6 +160,13 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
             param.width = 0
         }
         view.layoutParams = param
+        MyLog.e("===","isVisible = $isVisible")
+//        var loadMoreView=this.loadMoreView as LoadMoreView
+//        if(isVisible){
+//            loadMoreView.show()
+//        }else{
+//            loadMoreView.hide()
+//        }
     }
 
     /**
@@ -184,14 +196,18 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
             binding = itemBinding
         }
 
+        constructor(itemView: View):super(itemView)
+
+
 
     }
 
     inner class HFLViewHolder : RecyclerView.ViewHolder {
         constructor(itemView: View) : super(itemView) {
             when (itemView) {
+                //初始化时不显示
                 loadMoreView -> {
-                setVisibility(false,loadMoreView!!)
+                    setVisibility(false, loadMoreView!!)
                 }
             }
         }
