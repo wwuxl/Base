@@ -12,8 +12,6 @@ import wxl.com.base.R
 import wxl.com.base.utils.MyLog
 
 
-
-
 /**
  * @date Created time 2018/9/10 17:35
  * @author wuxiulin
@@ -39,7 +37,8 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     private var isPullUpRefresh: Boolean = true
     private var isPullDownRefresh: Boolean = true
     private var mDatas: ArrayList<T>
-    private var isNotMore:Boolean=true
+    //true 没有更多数据， false 还有下一页数据
+    private var isNoMore = false
 
 
     companion object {
@@ -68,81 +67,68 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     }
 
     override fun onLoadMore() {
-        MyLog.e("===","onLoadMore")
-      // mAdapter.showLoadMoreView(true)
-        //setLoadingMore(false)
-        var layoutManager=mRecyclerView.layoutManager
+        MyLog.e("===", "onLoadMore")
+        mAdapter.showLoadMoreView(true)
+        setLoadingMore(false)
+        var layoutManager = mRecyclerView.layoutManager
         //上拉加载更多时 显示加载更多布局
-        when(layoutManager){
-            is GridLayoutManager->{
-                var position:Int= mDatas.size
-                if(mHeaderView!=null){
-                    position+=1
+        when (layoutManager) {
+            is GridLayoutManager -> {
+                var position: Int = mDatas.size
+                if (mHeaderView != null) {
+                    position += 1
                 }
-                var manager=layoutManager
-                manager.scrollToPositionWithOffset(position,0)
-                manager.reverseLayout=false
+                var manager = layoutManager
+                manager.scrollToPositionWithOffset(position, 0)
+                manager.reverseLayout = false
             }
-            is LinearLayoutManager->{
-                var position:Int= mDatas.size
-                if(mHeaderView!=null){
-                    position+=1
+            is LinearLayoutManager -> {
+                var position: Int = mDatas.size
+                if (mHeaderView != null) {
+                    position += 1
                 }
-                var manager=layoutManager
-                manager.scrollToPositionWithOffset(position,0)
-               // manager.stackFromEnd=true//
+                var manager = layoutManager
+                manager.scrollToPositionWithOffset(position, 0)
+                // manager.stackFromEnd=true//
             }
-            is StaggeredGridLayoutManager->{
-                var position:Int= mDatas.size
-                if(mHeaderView!=null){
-                    position+=1
+            is StaggeredGridLayoutManager -> {
+                var position: Int = mDatas.size
+                if (mHeaderView != null) {
+                    position += 1
                 }
-                var manager=layoutManager
-                manager.scrollToPositionWithOffset(position,0)
+                var manager = layoutManager
+                manager.scrollToPositionWithOffset(position, 0)
             }
         }
 
-        if(isNotMore){
-            //限制上拉加载
-            mAdapter.getLoadMoreView().setLoadingMoreStatus(LoadMoreView.LoadStatus.NOT_MORE)
-        }else{
-            if(mDatas.size% mPageSize==0){
-                //可以上拉加载更多
-                mAdapter.getLoadMoreView().setLoadingMoreStatus(LoadMoreView.LoadStatus.HAS_MORE)
-                mIReloadData.reLoadData()
-            }else{
-                //请下拉刷新界面
-                mAdapter.getLoadMoreView().setLoadingMoreStatus(LoadMoreView.LoadStatus.PULL_DOWN)
-            }
-        }
+        mIReloadData.reLoadData()
+
     }
 
     override fun onFinish() {
-        setLoadingMore(false)
+
+        setLoadingMore(isNoMore)
         mAdapter.showLoadMoreView(false)
 
     }
 
 
-
     fun reloadData() {
         //第一次加载数据
         mIReloadData.reLoadData()
-        //mSwipeRefreshLayout?.isRefreshing=true
     }
 
     fun getNextPage(): Int = mCurrentPage++
 
     fun getPageSize(): Int = mPageSize
 
-    fun isPullUpRefresh()=isPullUpRefresh
+    fun isPullUpRefresh() = isPullUpRefresh
 
     fun setDatas(datas: ArrayList<T>?) {
-        isNotMore=false
         if (mCurrentPage == 1 || mCurrentPage == 0) {
             this.mDatas.clear()
-            if(datas!=null&&datas.size< mPageSize) {
-                isNotMore=true
+            datas?.let {
+                isNoMore=it.size< mPageSize
             }
         }
         //不是null 就添加
@@ -211,23 +197,23 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     }
 
-    fun notifyItemInserted(position: Int,data: T) {
+    fun notifyItemInserted(position: Int, data: T) {
         var tempPosition: Int = position
         if (mHeaderView != null)
             tempPosition += 1
 
         mDatas = mAdapter.getDatas()
         //添加到集合再刷新
-        mDatas.add(position,data)
+        mDatas.add(position, data)
         mAdapter.notifyItemInserted(tempPosition)
-        mAdapter.notifyItemRangeChanged(tempPosition,mDatas.size-tempPosition)
+        mAdapter.notifyItemRangeChanged(tempPosition, mDatas.size - tempPosition)
     }
 
     fun notifyItemInserted(data: T) {
         //添加到集合再刷新
         mDatas = mAdapter.getDatas()
         mDatas.add(data)
-        mAdapter.notifyItemChanged(mDatas.size-1)
+        mAdapter.notifyItemChanged(mDatas.size - 1)
     }
 
     fun notifyItemRangeInserted(positionStart: Int, itemCOunt: Int) {
@@ -250,8 +236,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         else
             mAdapter.notifyItemRangeChanged(position, itemCOunt, data)
     }
-
-
 
 
     class Builder<T>(context: Context, iAdapter: RIAdapter<T>, iReloadData: IReloadData) {
@@ -308,13 +292,13 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             return this
         }
 
-        fun addHeaderView(headerView: View?):Builder<T> {
+        fun addHeaderView(headerView: View?): Builder<T> {
             this.mHeaderView = headerView
             return this
 
         }
 
-        fun addFooterView(footerView: View?):Builder<T> {
+        fun addFooterView(footerView: View?): Builder<T> {
             this.mFooterView = footerView
             return this
         }
@@ -322,7 +306,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         /**
          * 设置是否可以 上拉加载更多和下拉刷新
          */
-        fun setOnPullRefresh(isPullDownRefresh: Boolean=true, isPullUpRefresh: Boolean=true): Builder<T> {
+        fun setOnPullRefresh(isPullDownRefresh: Boolean = true, isPullUpRefresh: Boolean = true): Builder<T> {
             this.isPullDownRefresh = isPullDownRefresh
             this.isPullUpRefresh = isPullUpRefresh
             return this
@@ -344,7 +328,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
 
             var recyclerViewDelegate = RecyclerViewDelegate(this)
-            if(isPullUpRefresh){
+            if (isPullUpRefresh) {
                 initRecyclerView(recyclerViewDelegate)
             }
             mSwipeRefreshLayout?.let { initSwipeRefreshLayout(recyclerViewDelegate) }
@@ -356,6 +340,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
         //设置RecyclerView滚动监听
         private fun initRecyclerView(recyclerViewDelegate: RecyclerViewDelegate<T>) {
+            mSwipeRefreshLayout?.let { recyclerViewDelegate.setSwipeRefreshLayout(it) }
             mRecyclerView.addOnScrollListener(recyclerViewDelegate)
 
         }
@@ -373,6 +358,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
 
         }
+
         private fun initSwipeRefreshLayout(recyclerViewDelegate: RecyclerViewDelegate<T>) {
             //设置下拉圆圈的大小，两个值 LARGE， DEFAULT
             mSwipeRefreshLayout?.setSize(SwipeRefreshLayout.DEFAULT)
@@ -385,7 +371,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             //可以下来
             if (isPullDownRefresh) {
                 mSwipeRefreshLayout?.setOnRefreshListener {
-                    MyLog.e("===","setOnRefreshListener")
+                    MyLog.e("===", "setOnRefreshListener")
                     //下拉刷新请求回到第一页数据
                     mCurrentPage = 0
                     //不可上拉加载更多

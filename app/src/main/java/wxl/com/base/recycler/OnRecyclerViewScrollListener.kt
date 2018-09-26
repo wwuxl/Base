@@ -1,5 +1,6 @@
 package wxl.com.base.recycler
 
+import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -8,14 +9,19 @@ import android.support.v7.widget.StaggeredGridLayoutManager
 open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener(), LoadMoreListener {
     private var lastVisibleItemPosition: Int = 0
     private var mIsLoadingMore = false
+    private var swipeRefreshLayout:SwipeRefreshLayout?=null
 
-    fun isLoadingMore(): Boolean {
+    private fun isLoadingMore(): Boolean {
         return mIsLoadingMore
     }
 
     fun setLoadingMore(loadingMore: Boolean) {
         mIsLoadingMore = loadingMore
     }
+    fun setSwipeRefreshLayout(swipeRefreshLayout: SwipeRefreshLayout){
+        this.swipeRefreshLayout = swipeRefreshLayout
+    }
+
     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
         super.onScrolled(recyclerView, dx, dy)
         if (recyclerView.layoutManager is LinearLayoutManager) {
@@ -48,10 +54,17 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
 //                    //onLoadMore()
 //                }
 //            }
+
             //停止滚动 SCROLL_STATE_IDLE
             if(childCount > 0&&newState==RecyclerView.SCROLL_STATE_IDLE&&lastView is LoadMoreView){
                 if(!isLoadingMore()){
                     this.mIsLoadingMore =true
+
+                    swipeRefreshLayout?.let {
+                        if(it.isRefreshing){
+                            return
+                        }
+                    }
                     onStart()
                     onLoadMore()
 
