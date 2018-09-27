@@ -6,7 +6,11 @@ import android.graphics.Rect
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import wxl.com.base.utils.UIUtil
-
+/**
+ * @date Created time 2018/9/20 11:43
+ * @author wuxiulin
+ * @description RecyclerView 分割线
+ */
 class LineItemDecoration(lineColor: Int, var lineWidthDp: Int, var leftDisDp: Int = 0, var rightDisDp: Int = 0) : RecyclerView.ItemDecoration() {
 
     private var mPaint: Paint = Paint()

@@ -8,7 +8,11 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import wxl.com.base.R
 
-
+/**
+ * @date Created time 2018/9/27 11:44
+ * @author wuxiulin
+ * @description 时间轴分割
+ */
 class TimelineItemDecoration(context: Context,color:Int) : RecyclerView.ItemDecoration() {
     private var mPaint:Paint
     //ItemView左边的间距

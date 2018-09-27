@@ -21,6 +21,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     private lateinit var mRecyclerView: RecyclerView
     private lateinit var mAdapter: RecyclerViewAdapter<T>
+    private var loadStatus:LoadMoreView.LoadStatus=LoadMoreView.LoadStatus.HAS_MORE
     /**
      * 头部itemView
      */
@@ -68,7 +69,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     override fun onLoadMore() {
         MyLog.e("===", "onLoadMore")
-        mAdapter.showLoadMoreView(true)
+        mAdapter.setLoadStatus(loadStatus)
         setLoadingMore(false)
         var layoutManager = mRecyclerView.layoutManager
         //上拉加载更多时 显示加载更多布局
@@ -89,7 +90,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
                 }
                 var manager = layoutManager
                 manager.scrollToPositionWithOffset(position, 0)
-                // manager.stackFromEnd=true//
             }
             is StaggeredGridLayoutManager -> {
                 var position: Int = mDatas.size
@@ -106,10 +106,26 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     }
 
     override fun onFinish() {
+        setLoadingMore(false)
+        if (mCurrentPage > 1 ) {
+            //加载更多时，根据数据显示相应的状态
+            mAdapter.setLoadStatus(loadStatus)
+            loadStatus=LoadMoreView.LoadStatus.HAS_MORE
+        }
 
-        setLoadingMore(isNoMore)
-        mAdapter.showLoadMoreView(false)
+    }
 
+    /**
+     * 网络错误时调用此方法关闭网络请求的状态
+     */
+    fun onError(){
+        if(mCurrentPage==1|| mCurrentPage==0){
+            //隐藏下拉转圈
+            mSwipeRefreshLayout?.isRefreshing = false
+        }else{
+            loadStatus=LoadMoreView.LoadStatus.CLOSE_VIEW
+            onFinish()
+        }
     }
 
 
@@ -127,8 +143,17 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     fun setDatas(datas: ArrayList<T>?) {
         if (mCurrentPage == 1 || mCurrentPage == 0) {
             this.mDatas.clear()
+        }else{
+            //加载更多时，根据数据显示相应的状态
+            if(datas==null){
+                loadStatus=LoadMoreView.LoadStatus.NOT_MORE
+            }
             datas?.let {
-                isNoMore=it.size< mPageSize
+                loadStatus = if(it.size==0){
+                    LoadMoreView.LoadStatus.NOT_MORE
+                }else{
+                    LoadMoreView.LoadStatus.CLOSE_VIEW
+                }
             }
         }
         //不是null 就添加
@@ -138,6 +163,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         mSwipeRefreshLayout?.isRefreshing = false
 
         mAdapter.notifyDataSetChanged()
+
 
         onFinish()
     }

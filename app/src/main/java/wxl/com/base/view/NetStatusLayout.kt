@@ -13,7 +13,7 @@ import wxl.com.base.databinding.ErrorViewBinding
 /**
  * @date Created time 2018/9/5 10:41
  * @author wuxiulin
- * @description 网络请求的显示界面
+ * @description 网络请求状态的显示界面
  */
 class NetStatusLayout @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : FrameLayout(context, attrs, defStyleAttr) {
     private lateinit var emptyViewBinding: EmptyViewBinding

@@ -5,10 +5,12 @@ import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
 import android.view.View
 import android.view.ViewGroup
-import wxl.com.base.utils.MyLog
-import wxl.com.base.utils.UIUtil
 
-
+/**
+ * @date Created time 2018/9/11 11:41
+ * @author wuxiulin
+ * @description RecyclerView适配器封装
+ */
 class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private var datas: ArrayList<T>
     private var adapterImpl: RIAdapter<T>
@@ -136,11 +138,16 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     fun showLoadMoreView(isShow: Boolean) {
         loadMoreView?.let {
             //重绘loadMoreView的大小
-            setVisibility(isShow, it)
+            //setVisibility(isShow, it)
+
 
         }
 
 
+    }
+    fun setLoadStatus(loadStatus: LoadMoreView.LoadStatus){
+        var loadMoreView=loadMoreView as LoadMoreView
+        loadMoreView.setLoadingMoreStatus(loadStatus)
     }
 
     /**
@@ -148,25 +155,30 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * @param isVisible
      * @param view
      */
-    private fun setVisibility(isVisible: Boolean, view: View) {
-        var param = view.layoutParams
-        if (isVisible) {
-            param.height = UIUtil.dip2px(50)
-            param.width = UIUtil.getScreenWidth()
-            view.visibility = View.VISIBLE
-        } else {
-            view.visibility = View.GONE
-            param.height = 0
-            param.width = 0
-        }
-        view.layoutParams = param
-        MyLog.e("===","isVisible = $isVisible")
-//        var loadMoreView=this.loadMoreView as LoadMoreView
+    private fun setVisibility(loadStatus: LoadMoreView.LoadStatus) {
+//        var param = view.layoutParams
+//        if (isVisible) {
+//            param.height = UIUtil.dip2px(50)
+//            param.width = UIUtil.getScreenWidth()
+//            view.visibility = View.VISIBLE
+//        } else {
+//            view.visibility = View.GONE
+//            param.height = 0
+//            param.width = 0
+//        }
+//        view.layoutParams = param
+       // MyLog.e("===","isVisible = $isVisible")
+        var loadMoreView=this.loadMoreView as LoadMoreView
 //        if(isVisible){
 //            loadMoreView.show()
 //        }else{
 //            loadMoreView.hide()
 //        }
+
+
+        loadMoreView.setLoadingMoreStatus(loadStatus)
+
+
     }
 
     /**
@@ -207,7 +219,7 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
             when (itemView) {
                 //初始化时不显示
                 loadMoreView -> {
-                    setVisibility(false, loadMoreView!!)
+                    //setVisibility(false, loadMoreView!!)
                 }
             }
         }

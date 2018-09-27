@@ -12,7 +12,11 @@ import wxl.com.base.databinding.ViewBaseTitleBinding
 import wxl.com.base.subscriber.IFDialog
 import wxl.com.base.subscriber.LoadingDialog
 
-
+/**
+ * @date Created time 2018/9/27 11:47
+ * @author wuxiulin
+ * @description Activity 基类
+ */
 abstract class BaseActivity : AppCompatActivity() ,IFDialog{
     private lateinit var mBaseBinding: ActivityBaseBinding
     private var titleBinding: ViewBaseTitleBinding?=null

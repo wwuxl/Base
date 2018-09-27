@@ -154,15 +154,19 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
     inner class MyHandler :Handler(){
         override fun handleMessage(msg: Message?) {
             super.handleMessage(msg)
-
             MyLog.e("===","收到消息")
             var datas= arrayListOf<String>()
-            for(i in 0..10){
-                datas.add("小明$i")
+            if(i<=1){
+                i++
+                recyclerViewDelegate?.getNextPage()
+                for(i in 0..10){
+                    datas.add("小明$i")
+                }
             }
             recyclerViewDelegate?.setDatas(datas)
             setDataStatus(NetStatusLayout.NetStatus.STATUS_SUCCEED)
         }
     }
+    var i=0
 
 }

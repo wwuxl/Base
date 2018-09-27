@@ -5,11 +5,17 @@ import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
-
+import wxl.com.base.utils.UIUtil
+import wxl.com.base.utils.UIUtil.getResources
+/**
+ * @date Created time 2018/9/12 11:41
+ * @author wuxiulin
+ * @description RecyclerView 滚动监听
+ */
 open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener(), LoadMoreListener {
     private var lastVisibleItemPosition: Int = 0
     private var mIsLoadingMore = false
-    private var swipeRefreshLayout:SwipeRefreshLayout?=null
+    private var swipeRefreshLayout: SwipeRefreshLayout? = null
 
     private fun isLoadingMore(): Boolean {
         return mIsLoadingMore
@@ -18,7 +24,8 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
     fun setLoadingMore(loadingMore: Boolean) {
         mIsLoadingMore = loadingMore
     }
-    fun setSwipeRefreshLayout(swipeRefreshLayout: SwipeRefreshLayout){
+
+    fun setSwipeRefreshLayout(swipeRefreshLayout: SwipeRefreshLayout) {
         this.swipeRefreshLayout = swipeRefreshLayout
     }
 
@@ -42,8 +49,8 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
         super.onScrollStateChanged(recyclerView, newState)
         var childCount = recyclerView.layoutManager?.childCount
         var totalItemCount = recyclerView.layoutManager?.itemCount
-        if (childCount != null&&totalItemCount!=null) {
-            var lastView=recyclerView.getChildAt(childCount-1)
+        if (childCount != null && totalItemCount != null) {
+            var lastView = recyclerView.getChildAt(childCount - 1)
 
 
 //            if(childCount > 0&&newState==RecyclerView.SCROLL_STATE_IDLE&&lastVisibleItemPosition >= totalItemCount - 1){
@@ -54,16 +61,35 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
 //                    //onLoadMore()
 //                }
 //            }
+            //当前屏幕显示的区域高度
+            var scrollExtent = recyclerView.computeVerticalScrollExtent()
+            //获取整个View控件的高度
+            var scrollRange = recyclerView.computeVerticalScrollRange()
+            //获取当前屏幕滑过的距离
+            var scrollOffset = recyclerView.computeVerticalScrollOffset()
+
+           // MyLog.e("===", "$scrollRange --- $scrollExtent --- $scrollOffset  --- ${recyclerView.top}")
+            //获取状态栏的高度
+            var statusBarHeight1 = -1    //获取status_bar_height资源的ID
+            var resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android")
+            if (resourceId > 0) {
+                //根据资源ID获取响应的尺寸值
+                statusBarHeight1 = getResources().getDimensionPixelSize(resourceId)
+            }
 
             //停止滚动 SCROLL_STATE_IDLE
-            if(childCount > 0&&newState==RecyclerView.SCROLL_STATE_IDLE&&lastView is LoadMoreView){
-                if(!isLoadingMore()){
-                    this.mIsLoadingMore =true
+            if (childCount > 0 && newState == RecyclerView.SCROLL_STATE_IDLE && lastView is LoadMoreView) {
+                if (!isLoadingMore()) {
+                    this.mIsLoadingMore = true
 
                     swipeRefreshLayout?.let {
-                        if(it.isRefreshing){
+                        if (it.isRefreshing) {
                             return
                         }
+                    }
+                    //判段是否到屏幕底部
+                    if ((UIUtil.getScreenHeight() - statusBarHeight1) != scrollExtent) {
+                        return
                     }
                     onStart()
                     onLoadMore()
