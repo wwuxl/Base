@@ -17,7 +17,7 @@ object RxHttpUtils {
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(QuietSubscriber<T>(listener,statusListener))
+                .subscribeWith(QuietSubscriber(listener,statusListener))
     }
 
 
@@ -26,7 +26,7 @@ object RxHttpUtils {
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(ProgressSubscriber<T>(dialogImp, listener,statusListener))
+                .subscribeWith(ProgressSubscriber(dialogImp, listener,statusListener))
     }
 
     fun <T> rxUpdata(flowable: Flowable<T>, updataListener: OnUpdataListener<T>): Disposable {
@@ -34,7 +34,7 @@ object RxHttpUtils {
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(UpdataSubscriber<T>(updataListener))
+                .subscribeWith(UpdataSubscriber(updataListener))
     }
 
 }
