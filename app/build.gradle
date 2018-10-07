@@ -12,20 +12,51 @@ android {
         applicationId "wxl.com.base"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('base.jks')
+            storePassword "base123456"
+            keyAlias "key0"
+            keyPassword "base123456"
+        }
+
     }
     buildTypes {
         release {
-            minifyEnabled false
+            //是否进行混淆
+            minifyEnabled true
+            jniDebuggable false //关闭jni调试
+            shrinkResources true //移除无用的resource文件
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFile 'proguard-gson.pro'
+            proguardFile 'proguard-retrofit.pro'
+            proguardFile 'proguard-rxjava.pro'
+            signingConfig signingConfigs.release
+        }
+        debug{
+            minifyEnabled false
+            proguardFiles 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 
 
+
+
     dataBinding {
         enabled = true
+    }
+
+    /**自定义打包APK名称*/
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "${variant.applicationId}-${variant.name}-${variant.versionName}.apk"
+        }
     }
 
 }
