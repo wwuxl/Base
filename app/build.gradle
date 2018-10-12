@@ -58,6 +58,10 @@ android {
             outputFileName = "${variant.applicationId}-${variant.name}-${variant.versionName}.apk"
         }
     }
+    /*忽略Manifest.xml中 application 的黄色警告*/
+    lintOptions {
+        disable 'GoogleAppIndexingWarning'
+    }
 
 }
 
