@@ -5,6 +5,7 @@ import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
+import wxl.com.base.utils.MyLog
 import wxl.com.base.utils.UIUtil
 import wxl.com.base.utils.UIUtil.getResources
 /**
@@ -31,17 +32,17 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
 
     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
         super.onScrolled(recyclerView, dx, dy)
-        if (recyclerView.layoutManager is LinearLayoutManager) {
-            lastVisibleItemPosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
-        } else if (recyclerView.layoutManager is GridLayoutManager) {
-            lastVisibleItemPosition = (recyclerView.layoutManager as GridLayoutManager).findLastVisibleItemPosition()
-        } else if (recyclerView.layoutManager is StaggeredGridLayoutManager) {
-            var manager = recyclerView.layoutManager as StaggeredGridLayoutManager
-            var lastPositons = IntArray(manager.spanCount)
-            manager.findLastVisibleItemPositions(lastPositons)
-            lastVisibleItemPosition = findMax(lastPositons)
-
-        }
+//        if (recyclerView.layoutManager is LinearLayoutManager) {
+//            lastVisibleItemPosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+//        } else if (recyclerView.layoutManager is GridLayoutManager) {
+//            lastVisibleItemPosition = (recyclerView.layoutManager as GridLayoutManager).findLastVisibleItemPosition()
+//        } else if (recyclerView.layoutManager is StaggeredGridLayoutManager) {
+//            var manager = recyclerView.layoutManager as StaggeredGridLayoutManager
+//            var lastPositons = IntArray(manager.spanCount)
+//            manager.findLastVisibleItemPositions(lastPositons)
+//            lastVisibleItemPosition = findMax(lastPositons)
+//
+//        }
     }
 
 
@@ -80,8 +81,6 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
             //停止滚动 SCROLL_STATE_IDLE
             if (childCount > 0 && newState == RecyclerView.SCROLL_STATE_IDLE && lastView is LoadMoreView) {
                 if (!isLoadingMore()) {
-                    this.mIsLoadingMore = true
-
                     swipeRefreshLayout?.let {
                         if (it.isRefreshing) {
                             return
@@ -91,6 +90,7 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
                     if ((UIUtil.getScreenHeight() - statusBarHeight1) != scrollExtent) {
                         return
                     }
+                    mIsLoadingMore = true
                     onStart()
                     onLoadMore()
 

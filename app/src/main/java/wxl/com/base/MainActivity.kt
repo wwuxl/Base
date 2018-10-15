@@ -40,9 +40,15 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
         var itemBinding = binding as ItemMainBinding
         itemBinding.name.text=data
         itemBinding.root.setOnClickListener {
-           recyclerViewDelegate?.notifyItemRemoved(position)
-            ToastUtil.show(this@MainActivity,"$position")
+           //recyclerViewDelegate?.notifyItemRemoved(position)
+            ToastUtil.show("$position")
             //startActivity(Intent(this@MainActivity,GridActivity::class.java))
+           // recyclerViewDelegate?.notifyItemChanged(position,"改变的数据")
+            //recyclerViewDelegate?.notifyItemChanged("小明2","改变的数据")
+            //recyclerViewDelegate?.notifyItemInserted("新增数据")
+            //recyclerViewDelegate?.notifyItemInserted(position,"新增数据")
+            recyclerViewDelegate?.notifyItemRangeRemoved(position,2)
+
 
         }
 
@@ -159,7 +165,7 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
             if(i<=1){
                 i++
                 recyclerViewDelegate?.getNextPage()
-                for(i in 0..10){
+                for(i in 0..5){
                     datas.add("小明$i")
                 }
             }

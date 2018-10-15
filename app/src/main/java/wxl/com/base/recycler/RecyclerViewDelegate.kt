@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.LinearLayout
 import wxl.com.base.R
 import wxl.com.base.utils.MyLog
+import wxl.com.base.utils.ToastUtil
 
 
 /**
@@ -21,7 +22,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     private lateinit var mRecyclerView: RecyclerView
     private lateinit var mAdapter: RecyclerViewAdapter<T>
-    private var loadStatus:LoadMoreView.LoadStatus=LoadMoreView.LoadStatus.HAS_MORE
+    private var loadStatus: LoadMoreView.LoadStatus = LoadMoreView.LoadStatus.CLOSE_VIEW
     /**
      * 头部itemView
      */
@@ -107,10 +108,10 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     override fun onFinish() {
         setLoadingMore(false)
-        if (mCurrentPage > 1 ) {
+        if (mCurrentPage >= 1) {
             //加载更多时，根据数据显示相应的状态
             mAdapter.setLoadStatus(loadStatus)
-            loadStatus=LoadMoreView.LoadStatus.HAS_MORE
+            loadStatus = LoadMoreView.LoadStatus.HAS_MORE
         }
 
     }
@@ -118,12 +119,12 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     /**
      * 网络错误时调用此方法关闭网络请求的状态
      */
-    fun onError(){
-        if(mCurrentPage==1|| mCurrentPage==0){
+    fun onError() {
+        if (mCurrentPage == 1 || mCurrentPage == 0) {
             //隐藏下拉转圈
             mSwipeRefreshLayout?.isRefreshing = false
-        }else{
-            loadStatus=LoadMoreView.LoadStatus.CLOSE_VIEW
+        } else {
+            loadStatus = LoadMoreView.LoadStatus.CLOSE_VIEW
             onFinish()
         }
     }
@@ -143,17 +144,18 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     fun setDatas(datas: ArrayList<T>?) {
         if (mCurrentPage == 1 || mCurrentPage == 0) {
             this.mDatas.clear()
-        }else{
-            //加载更多时，根据数据显示相应的状态
-            if(datas==null){
-                loadStatus=LoadMoreView.LoadStatus.NOT_MORE
-            }
-            datas?.let {
-                loadStatus = if(it.size==0){
-                    LoadMoreView.LoadStatus.NOT_MORE
-                }else{
-                    LoadMoreView.LoadStatus.CLOSE_VIEW
-                }
+        } else {
+
+        }
+        //加载更多时，根据数据显示相应的状态
+        if (datas == null) {
+            loadStatus = LoadMoreView.LoadStatus.NOT_MORE
+        }
+        datas?.let {
+            loadStatus = if (it.size == 0) {
+                LoadMoreView.LoadStatus.NOT_MORE
+            } else {
+                LoadMoreView.LoadStatus.CLOSE_VIEW
             }
         }
         //不是null 就添加
@@ -175,23 +177,30 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     }
 
-    fun notifyItemChanged(position: Int) {
-        if (mHeaderView != null)
-            mAdapter.notifyItemChanged(position + 1)
-        else
-            mAdapter.notifyItemChanged(position)
-    }
-
-    fun notifyItemChanged(data: T) {
+    fun notifyItemChanged(oldData: T, newData: T) {
         mDatas.forEachIndexed { index, t ->
-            if (data == t) {
+            if (oldData == t) {
+                mDatas[index] = newData
+
                 if (mHeaderView != null)
-                    mAdapter.notifyItemChanged(index + 1)
+                    mAdapter.notifyItemChanged(index + 1, newData)
                 else
-                    mAdapter.notifyItemChanged(index)
+                    mAdapter.notifyItemChanged(index, newData)
                 return
             }
         }
+    }
+
+    fun notifyItemChanged(position: Int, data: T) {
+        var tempPosition: Int = position
+        mDatas[tempPosition] = data
+
+        if (mHeaderView != null)
+            tempPosition += 1
+
+        mAdapter.notifyItemChanged(tempPosition, data)
+
+
     }
 
     fun notifyItemRemoved(position: Int) {
@@ -203,7 +212,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
                 break
             }
         }
-        mDatas = mAdapter.getDatas()
         t1?.let { mDatas.remove(t1) }
 
         if (mHeaderView != null) {
@@ -215,12 +223,24 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     }
 
-    fun notifyItemRangeRemoved(positionStart: Int, itemCOunt: Int) {
-        if (mHeaderView != null)
-            mAdapter.notifyItemRangeRemoved(positionStart + 1, itemCOunt)
-        else
-            mAdapter.notifyItemRangeRemoved(positionStart, itemCOunt)
+    fun notifyItemRangeRemoved(positionStart: Int, itemCount: Int) {
+        var tempPositionStart = positionStart
+        if(tempPositionStart+itemCount>mDatas.size){
+            ToastUtil.show(IndexOutOfBoundsException("IndexOutOfBoundsException: index: ${tempPositionStart+itemCount} , Size: ${mDatas.size}"))
+            return
+        }
+        //从集合里移除元素
+        for (i in (tempPositionStart until  tempPositionStart+itemCount).reversed()){
+            mDatas.remove(mDatas[i])
 
+        }
+
+        if (mHeaderView != null)
+            tempPositionStart += 1
+
+        mAdapter.notifyItemRangeRemoved(tempPositionStart, itemCount)
+        //刷新后面的itemV 数据
+        mAdapter.notifyItemRangeChanged(tempPositionStart, mDatas.size-positionStart)
     }
 
     fun notifyItemInserted(position: Int, data: T) {
@@ -247,13 +267,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             mAdapter.notifyItemRangeInserted(positionStart + 1, itemCOunt)
         else
             mAdapter.notifyItemRangeInserted(positionStart, itemCOunt)
-    }
-
-    fun notifyItemChanged(position: Int, data: T?) {
-        if (mHeaderView != null)
-            mAdapter.notifyItemChanged(position + 1, data)
-        else
-            mAdapter.notifyItemChanged(position, data)
     }
 
     fun notifyItemRangeChanged(position: Int, itemCOunt: Int, data: T?) {
@@ -338,6 +351,9 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             return this
         }
 
+        /**
+         * 添加分割线
+         */
         fun addItemDecoration(divider: RecyclerView.ItemDecoration): Builder<T> {
             mRecyclerView.addItemDecoration(divider)
             return this

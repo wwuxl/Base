@@ -135,50 +135,9 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
     fun getLoadMoreView(): LoadMoreView = loadMoreView as LoadMoreView
 
 
-    fun showLoadMoreView(isShow: Boolean) {
-        loadMoreView?.let {
-            //重绘loadMoreView的大小
-            //setVisibility(isShow, it)
-
-
-        }
-
-
-    }
     fun setLoadStatus(loadStatus: LoadMoreView.LoadStatus){
         var loadMoreView=loadMoreView as LoadMoreView
         loadMoreView.setLoadingMoreStatus(loadStatus)
-    }
-
-    /**
-     * 隐藏和显示ItemView
-     * @param isVisible
-     * @param view
-     */
-    private fun setVisibility(loadStatus: LoadMoreView.LoadStatus) {
-//        var param = view.layoutParams
-//        if (isVisible) {
-//            param.height = UIUtil.dip2px(50)
-//            param.width = UIUtil.getScreenWidth()
-//            view.visibility = View.VISIBLE
-//        } else {
-//            view.visibility = View.GONE
-//            param.height = 0
-//            param.width = 0
-//        }
-//        view.layoutParams = param
-       // MyLog.e("===","isVisible = $isVisible")
-        var loadMoreView=this.loadMoreView as LoadMoreView
-//        if(isVisible){
-//            loadMoreView.show()
-//        }else{
-//            loadMoreView.hide()
-//        }
-
-
-        loadMoreView.setLoadingMoreStatus(loadStatus)
-
-
     }
 
     /**

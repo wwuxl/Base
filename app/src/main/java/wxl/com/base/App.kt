@@ -9,7 +9,7 @@ import com.facebook.stetho.Stetho
 class App:Application() {
 
     companion object {
-        lateinit var mContext:Context
+        private lateinit var mContext:Context
         private lateinit var mHandler: Handler
         fun getContext():Context{
             return mContext
