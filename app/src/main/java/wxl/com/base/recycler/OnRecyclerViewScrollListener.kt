@@ -71,12 +71,12 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
 
            // MyLog.e("===", "$scrollRange --- $scrollExtent --- $scrollOffset  --- ${recyclerView.top}")
             //获取状态栏的高度
-            var statusBarHeight1 = -1    //获取status_bar_height资源的ID
-            var resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android")
-            if (resourceId > 0) {
-                //根据资源ID获取响应的尺寸值
-                statusBarHeight1 = getResources().getDimensionPixelSize(resourceId)
-            }
+//            var statusBarHeight1 = -1    //获取status_bar_height资源的ID
+//            var resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android")
+//            if (resourceId > 0) {
+//                //根据资源ID获取响应的尺寸值
+//                statusBarHeight1 = getResources().getDimensionPixelSize(resourceId)
+//            }
 
             //停止滚动 SCROLL_STATE_IDLE
             if (childCount > 0 && newState == RecyclerView.SCROLL_STATE_IDLE && lastView is LoadMoreView) {
@@ -86,8 +86,11 @@ open abstract class OnRecyclerViewScrollListener : RecyclerView.OnScrollListener
                             return
                         }
                     }
+                    //获取recyclerView的起点位置
+                    var ins= IntArray(2)
+                    recyclerView.getLocationOnScreen(ins)
                     //判段是否到屏幕底部
-                    if ((UIUtil.getScreenHeight() - statusBarHeight1) != scrollExtent) {
+                    if (UIUtil.getScreenHeight()-ins[1] != scrollExtent) {
                         return
                     }
                     mIsLoadingMore = true

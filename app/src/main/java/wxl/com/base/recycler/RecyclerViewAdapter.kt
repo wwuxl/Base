@@ -3,6 +3,7 @@ package wxl.com.base.recycler
 import android.databinding.ViewDataBinding
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 
@@ -136,8 +137,10 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 
     fun setLoadStatus(loadStatus: LoadMoreView.LoadStatus){
-        var loadMoreView=loadMoreView as LoadMoreView
-        loadMoreView.setLoadingMoreStatus(loadStatus)
+        loadMoreView?.let {
+            var loadMoreView=it as LoadMoreView
+            loadMoreView.setLoadingMoreStatus(loadStatus)
+        }
     }
 
     /**

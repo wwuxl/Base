@@ -42,6 +42,8 @@ android {
             minifyEnabled false
             proguardFiles 'proguard-rules.pro'
             signingConfig signingConfigs.release
+            debuggable true
+            jniDebuggable false
         }
     }
 

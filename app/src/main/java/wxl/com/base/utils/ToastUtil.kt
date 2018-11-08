@@ -1,6 +1,4 @@
 package wxl.com.base.utils
-
-import android.content.Context
 import android.text.TextUtils
 import android.widget.Toast
 import android.widget.Toast.makeText

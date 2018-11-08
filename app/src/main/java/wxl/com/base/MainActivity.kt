@@ -1,5 +1,6 @@
 package wxl.com.base
 
+import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.databinding.ViewDataBinding
 import android.os.Bundle
@@ -42,12 +43,12 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
         itemBinding.root.setOnClickListener {
            //recyclerViewDelegate?.notifyItemRemoved(position)
             ToastUtil.show("$position")
-            //startActivity(Intent(this@MainActivity,GridActivity::class.java))
+            startActivity(Intent(this@MainActivity,GridActivity::class.java))
            // recyclerViewDelegate?.notifyItemChanged(position,"改变的数据")
             //recyclerViewDelegate?.notifyItemChanged("小明2","改变的数据")
             //recyclerViewDelegate?.notifyItemInserted("新增数据")
             //recyclerViewDelegate?.notifyItemInserted(position,"新增数据")
-            recyclerViewDelegate?.notifyItemRangeRemoved(position,2)
+           // recyclerViewDelegate?.notifyItemRangeRemoved(position,2)
 
 
         }
@@ -55,6 +56,8 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
     }
 
     override fun reLoadData() {
+        var nextPage=recyclerViewDelegate?.getNextPage()
+        Log.e("===","nextpage= $nextPage")
         Thread(object :Runnable{
             override fun run() {
                 MyLog.e("===","发送消息")
@@ -162,13 +165,12 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
             super.handleMessage(msg)
             MyLog.e("===","收到消息")
             var datas= arrayListOf<String>()
-            if(i<=1){
-                i++
-                recyclerViewDelegate?.getNextPage()
+//            if(i<=1){
+//                i++
                 for(i in 0..5){
                     datas.add("小明$i")
                 }
-            }
+//            }
             recyclerViewDelegate?.setDatas(datas)
             setDataStatus(NetStatusLayout.NetStatus.STATUS_SUCCEED)
         }

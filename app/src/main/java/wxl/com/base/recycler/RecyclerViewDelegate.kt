@@ -6,6 +6,7 @@ import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.StaggeredGridLayoutManager
+import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import wxl.com.base.R
@@ -42,13 +43,13 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     //true 没有更多数据， false 还有下一页数据
     private var isNoMore = false
 
+    private var mCurrentPage: Int = 0
+    private var mPageSize: Int = 20
+    private lateinit var builder:Builder<T>
 
-    companion object {
-        private var mCurrentPage: Int = 0
-        private var mPageSize: Int = 20
-    }
 
     constructor(builder: Builder<T>) {
+        this.builder=builder
         this.mIAdapter = builder.mIAdapter
         this.mIReloadData = builder.mIReloadData
         this.mAdapter = builder.mAdapter
@@ -57,19 +58,75 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         this.mHeaderView = builder.mHeaderView
         this.isPullDownRefresh = builder.isPullDownRefresh
         this.isPullUpRefresh = builder.isPullUpRefresh
+
         builder.mSwipeRefreshLayout?.let { this.mSwipeRefreshLayout = it }
         mDatas = ArrayList()
 
+        mSwipeRefreshLayout?.let { initSwipeRefreshLayout() }
+        mSwipeRefreshLayout?.let { initLoadMoreView() }
+        mRecyclerView.adapter = mAdapter
 
     }
 
+    private fun initSwipeRefreshLayout() {
+        //设置下拉圆圈的大小，两个值 LARGE， DEFAULT
+        mSwipeRefreshLayout?.setSize(SwipeRefreshLayout.DEFAULT)
+        // 设置下拉圆圈上的颜色，红色、绿色、蓝色、黄色
+        mSwipeRefreshLayout?.setColorSchemeResources(
+                R.color.color_red,
+                R.color.color_green,
+                R.color.color_blue,
+                R.color.color_yellow)
+        //可以下来
+        if (isPullDownRefresh) {
+            mSwipeRefreshLayout?.setOnRefreshListener {
+                //下拉刷新请求回到第一页数据
+                mCurrentPage = 0
+                //不可上拉加载更多
+                setLoadingMore(true)
+                //回调重新加载数据的方法
+                mIReloadData.reLoadData()
+
+            }
+        } else {
+            mSwipeRefreshLayout?.isEnabled = false
+        }
+
+    }
+
+    private fun initLoadMoreView() {
+        //上拉加载更多
+        if (isPullUpRefresh) {
+            var loadMoreView = LoadMoreView(builder.context!!)
+            var params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            loadMoreView.layoutParams = params
+            mAdapter.setLoadMoreView(loadMoreView)
+            if (mRecyclerView.layoutManager is GridLayoutManager) {
+                //设置网格布局底部加载更多的View 宽带占用mSpanCount列
+                (mRecyclerView.layoutManager as GridLayoutManager).spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+
+                    override fun getSpanSize(p0: Int): Int {
+                        when (mAdapter.getItemViewType(p0)) {
+                            RecyclerViewAdapter.LOADMORE_VIEW_TYPE -> return builder.mSpanCount
+                            RecyclerViewAdapter.HEADER_VIEW_TYPE -> return builder.mSpanCount
+                            RecyclerViewAdapter.FOOTER_VIEW_TYPE -> return builder.mSpanCount
+                        }
+                        return 1
+                    }
+                }
+
+            }
+
+        }
+
+    }
 
     override fun onStart() {
 
     }
 
     override fun onLoadMore() {
-        MyLog.e("===", "onLoadMore")
+        MyLog.e("===", "onLoadMore  loadStatus= $loadStatus")
         mAdapter.setLoadStatus(loadStatus)
         setLoadingMore(false)
         var layoutManager = mRecyclerView.layoutManager
@@ -108,7 +165,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     override fun onFinish() {
         setLoadingMore(false)
-        if (mCurrentPage >= 1) {
+        if (mCurrentPage >=  1) {
             //加载更多时，根据数据显示相应的状态
             mAdapter.setLoadStatus(loadStatus)
             loadStatus = LoadMoreView.LoadStatus.HAS_MORE
@@ -127,6 +184,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             loadStatus = LoadMoreView.LoadStatus.CLOSE_VIEW
             onFinish()
         }
+        mCurrentPage--
     }
 
 
@@ -135,7 +193,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         mIReloadData.reLoadData()
     }
 
-    fun getNextPage(): Int = mCurrentPage++
+    fun getNextPage(): Int = ++mCurrentPage
 
     fun getPageSize(): Int = mPageSize
 
@@ -145,7 +203,9 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
         if (mCurrentPage == 1 || mCurrentPage == 0) {
             this.mDatas.clear()
         } else {
-
+            if (datas == null || datas.size == 0) {
+                mCurrentPage--
+            }
         }
         //加载更多时，根据数据显示相应的状态
         if (datas == null) {
@@ -225,12 +285,12 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
     fun notifyItemRangeRemoved(positionStart: Int, itemCount: Int) {
         var tempPositionStart = positionStart
-        if(tempPositionStart+itemCount>mDatas.size){
-            ToastUtil.show(IndexOutOfBoundsException("IndexOutOfBoundsException: index: ${tempPositionStart+itemCount} , Size: ${mDatas.size}"))
+        if (tempPositionStart + itemCount > mDatas.size) {
+            ToastUtil.show(IndexOutOfBoundsException("IndexOutOfBoundsException: index: ${tempPositionStart + itemCount} , Size: ${mDatas.size}"))
             return
         }
         //从集合里移除元素
-        for (i in (tempPositionStart until  tempPositionStart+itemCount).reversed()){
+        for (i in (tempPositionStart until tempPositionStart + itemCount).reversed()) {
             mDatas.remove(mDatas[i])
 
         }
@@ -240,7 +300,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
         mAdapter.notifyItemRangeRemoved(tempPositionStart, itemCount)
         //刷新后面的itemV 数据
-        mAdapter.notifyItemRangeChanged(tempPositionStart, mDatas.size-positionStart)
+        mAdapter.notifyItemRangeChanged(tempPositionStart, mDatas.size - positionStart)
     }
 
     fun notifyItemInserted(position: Int, data: T) {
@@ -320,7 +380,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
          */
         var isStaggered = false
 
-
         fun recyclerView(swipeRefreshLayout: SwipeRefreshLayout? = null, recyclerView: RecyclerView, spanCount: Int = 0, orientation: Int = LinearLayoutManager.VERTICAL, isStaggered: Boolean = false): Builder<T> {
             this.mSwipeRefreshLayout = swipeRefreshLayout!!
             this.mRecyclerView = recyclerView
@@ -373,10 +432,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
             if (isPullUpRefresh) {
                 initRecyclerView(recyclerViewDelegate)
             }
-            mSwipeRefreshLayout?.let { initSwipeRefreshLayout(recyclerViewDelegate) }
-            mSwipeRefreshLayout?.let { initLoadMoreView() }
-
-            mRecyclerView.adapter = mAdapter
             return recyclerViewDelegate
         }
 
@@ -401,59 +456,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
         }
 
-        private fun initSwipeRefreshLayout(recyclerViewDelegate: RecyclerViewDelegate<T>) {
-            //设置下拉圆圈的大小，两个值 LARGE， DEFAULT
-            mSwipeRefreshLayout?.setSize(SwipeRefreshLayout.DEFAULT)
-            // 设置下拉圆圈上的颜色，红色、绿色、蓝色、黄色
-            mSwipeRefreshLayout?.setColorSchemeResources(
-                    R.color.color_red,
-                    R.color.color_green,
-                    R.color.color_blue,
-                    R.color.color_yellow)
-            //可以下来
-            if (isPullDownRefresh) {
-                mSwipeRefreshLayout?.setOnRefreshListener {
-                    MyLog.e("===", "setOnRefreshListener")
-                    //下拉刷新请求回到第一页数据
-                    mCurrentPage = 0
-                    //不可上拉加载更多
-                    recyclerViewDelegate.setLoadingMore(true)
-                    //回调重新加载数据的方法
-                    mIReloadData.reLoadData()
-
-                }
-            } else {
-                mSwipeRefreshLayout?.isEnabled = false
-            }
-
-        }
-
-        private fun initLoadMoreView() {
-            //上拉加载更多
-            if (isPullUpRefresh) {
-                var loadMoreView = LoadMoreView(context!!)
-                var params = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                loadMoreView.layoutParams = params
-                mAdapter.setLoadMoreView(loadMoreView)
-                if (mRecyclerView.layoutManager is GridLayoutManager) {
-                    //设置网格布局底部加载更多的View 宽带占用mSpanCount列
-                    (mRecyclerView.layoutManager as GridLayoutManager).spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-
-                        override fun getSpanSize(p0: Int): Int {
-                            when (mAdapter.getItemViewType(p0)) {
-                                RecyclerViewAdapter.LOADMORE_VIEW_TYPE -> return mSpanCount
-                                RecyclerViewAdapter.HEADER_VIEW_TYPE -> return mSpanCount
-                                RecyclerViewAdapter.FOOTER_VIEW_TYPE -> return mSpanCount
-                            }
-                            return 1
-                        }
-                    }
-
-                }
-
-            }
-
-        }
 
     }
 

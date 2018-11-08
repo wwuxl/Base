@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.support.v7.widget.StaggeredGridLayoutManager
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,6 +35,8 @@ class GridActivity : NetStatusActivity(), IReloadData, RIAdapter<String> {
     }
 
     override fun reLoadData() {
+        Log.e("===","NextPage= ${recyclerViewDelegate?.getNextPage()}")
+        Log.e("===","recyclerViewDelegate= $recyclerViewDelegate")
         Thread(object :Runnable{
             override fun run() {
                 MyLog.e("===","发送消息")
