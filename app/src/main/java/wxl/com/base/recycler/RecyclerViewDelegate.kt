@@ -126,7 +126,6 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     }
 
     override fun onLoadMore() {
-        MyLog.e("===", "onLoadMore  loadStatus= $loadStatus")
         mAdapter.setLoadStatus(loadStatus)
         setLoadingMore(false)
         var layoutManager = mRecyclerView.layoutManager
