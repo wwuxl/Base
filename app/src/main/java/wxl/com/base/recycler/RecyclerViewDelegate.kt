@@ -21,8 +21,8 @@ import wxl.com.base.utils.ToastUtil
  */
 class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
 
-    private lateinit var mRecyclerView: RecyclerView
-    private lateinit var mAdapter: RecyclerViewAdapter<T>
+    private  var mRecyclerView: RecyclerView
+    private  var mAdapter: RecyclerViewAdapter<T>
     private var loadStatus: LoadMoreView.LoadStatus = LoadMoreView.LoadStatus.CLOSE_VIEW
     /**
      * 头部itemView
@@ -40,12 +40,10 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
     private var isPullUpRefresh: Boolean = true
     private var isPullDownRefresh: Boolean = true
     private var mDatas: ArrayList<T>
-    //true 没有更多数据， false 还有下一页数据
-    private var isNoMore = false
 
     private var mCurrentPage: Int = 0
     private var mPageSize: Int = 20
-    private lateinit var builder:Builder<T>
+    private var builder:Builder<T>
 
 
     constructor(builder: Builder<T>) {
@@ -379,7 +377,7 @@ class RecyclerViewDelegate<T> : OnRecyclerViewScrollListener {
          */
         var isStaggered = false
 
-        fun recyclerView(swipeRefreshLayout: SwipeRefreshLayout? = null, recyclerView: RecyclerView, spanCount: Int = 0, orientation: Int = LinearLayoutManager.VERTICAL, isStaggered: Boolean = false): Builder<T> {
+        fun recyclerView( recyclerView: RecyclerView,swipeRefreshLayout: SwipeRefreshLayout? = null, spanCount: Int = 0, orientation: Int = LinearLayoutManager.VERTICAL, isStaggered: Boolean = false): Builder<T> {
             this.mSwipeRefreshLayout = swipeRefreshLayout!!
             this.mRecyclerView = recyclerView
             this.mSpanCount = spanCount

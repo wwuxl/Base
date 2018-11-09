@@ -100,6 +100,8 @@ class RecyclerViewAdapter<T> : RecyclerView.Adapter<RecyclerView.ViewHolder> {
             else -> {
                 val viewHolder = p0 as RecyclerViewAdapter<*>.RViewHolder
                 adapterImpl.onBindView(datas[position - getHeaderViewCount()], viewHolder.binding!!, position - getHeaderViewCount())
+                //防止闪烁
+                viewHolder.binding?.executePendingBindings()
             }
         }
 

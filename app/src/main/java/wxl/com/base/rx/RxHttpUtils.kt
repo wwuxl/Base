@@ -12,21 +12,13 @@ import wxl.com.base.subscriber.*
  */
 object RxHttpUtils {
 
-    fun <T> rx(flowable: Flowable<T>, listener: OnSubscriberListener<T>,statusListener: NetStatusListener?=null): Disposable {
+
+    fun <T> rx( flowable: Flowable<T>, listener: OnSubscriberListener<T>,dialogImp: IFDialog?=null, statusListener: NetStatusListener?=null): Disposable {
         return flowable.onBackpressureDrop()
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(QuietSubscriber(listener,statusListener))
-    }
-
-
-    fun <T> rx(dialogImp: IFDialog?, flowable: Flowable<T>, listener: OnSubscriberListener<T>,statusListener: NetStatusListener?=null): Disposable {
-        return flowable.onBackpressureDrop()
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(ProgressSubscriber(dialogImp, listener,statusListener))
+                .subscribeWith(if(dialogImp==null) QuietSubscriber(listener,statusListener)else ProgressSubscriber(dialogImp, listener,statusListener))
     }
 
     fun <T> rxUpdata(flowable: Flowable<T>, updataListener: OnUpdataListener<T>): Disposable {

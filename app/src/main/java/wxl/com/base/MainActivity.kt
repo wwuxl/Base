@@ -99,7 +99,7 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
     private fun initView() {
         var headerBinding=DataBindingUtil.inflate<ViewHeader1Binding>(LayoutInflater.from(this),R.layout.view_header1,mBinding.swipeRefreshLayout,false)
         recyclerViewDelegate=RecyclerViewDelegate.Builder(this,this,this)
-                .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView)
+                .recyclerView(mBinding.recyclerView,mBinding.swipeRefreshLayout)
                 //.addItemDecoration(LineItemDecoration(Color.RED,50,20,20))
                 .addHeaderView(headerBinding.root)
                 .setOnPullRefresh(true,true)
@@ -150,12 +150,13 @@ class MainActivity : NetStatusActivity() ,RIAdapter<String>,IReloadData{
             }
 
         }))
-        mDisposable.add(RxHttpUtils.rx(this,HttpManager.getHttpService().getGoodsQrCode(57468,57468),object :OnSubscriberListener<Response<String>>{
+        mDisposable.add(RxHttpUtils.rx(HttpManager.getHttpService().getGoodsQrCode(57468,57468),object :OnSubscriberListener<Response<String>>{
             override fun onNext(t: Response<String>) {
 
             }
 
-        }))
+        },this))
+
 
     }
     private var handler= MyHandler()

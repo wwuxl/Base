@@ -90,7 +90,7 @@ class GridActivity : NetStatusActivity(), IReloadData, RIAdapter<String> {
         var footerBinding=DataBindingUtil.inflate<ViewFooterBinding>(LayoutInflater.from(this),R.layout.view_footer,null,false)
 
         recyclerViewDelegate=RecyclerViewDelegate.Builder(this,this,this)
-                .recyclerView(mBinding.swipeRefreshLayout,mBinding.recyclerView,3,StaggeredGridLayoutManager.VERTICAL,true)
+                .recyclerView(mBinding.recyclerView,mBinding.swipeRefreshLayout,3,StaggeredGridLayoutManager.VERTICAL,true)
                 .addHeaderView(headerBinding.root)
                 .addFooterView(footerBinding.root)
                 .setOnPullRefresh(true,false)

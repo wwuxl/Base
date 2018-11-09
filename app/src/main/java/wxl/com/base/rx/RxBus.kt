@@ -17,7 +17,6 @@ object RxBus {
 
     private var mBus: FlowableProcessor<Any>? = null
     init {
-        MyLog.e("===","RxBus  init")
         mBus =PublishProcessor.create<Any>().toSerialized()
     }
 
